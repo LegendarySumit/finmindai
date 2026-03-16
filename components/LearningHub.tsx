@@ -216,8 +216,8 @@ const LearningHub = () => {
     return (
         <section className="min-h-screen bg-[#070d1a] relative overflow-hidden py-10 sm:py-14 md:py-20 lg:py-24 px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8">
             {/* bg glows */}
-            <div className="pointer-events-none absolute top-0 left-1/4 w-[600px] h-[400px] rounded-full blur-3xl opacity-20" style={{ background: 'radial-gradient(circle, #3b82f6 0%, transparent 70%)' }} />
-            <div className="pointer-events-none absolute bottom-0 right-1/4 w-[500px] h-[400px] rounded-full blur-3xl opacity-15" style={{ background: 'radial-gradient(circle, #8b5cf6 0%, transparent 70%)' }} />
+            <div className="pointer-events-none absolute top-0 left-1/4 w-150 h-100 rounded-full blur-3xl opacity-20" style={{ background: 'radial-gradient(circle, #3b82f6 0%, transparent 70%)' }} />
+            <div className="pointer-events-none absolute bottom-0 right-1/4 w-125 h-100 rounded-full blur-3xl opacity-15" style={{ background: 'radial-gradient(circle, #8b5cf6 0%, transparent 70%)' }} />
 
             <div className="w-full max-w-7xl mx-auto relative">
 
@@ -228,7 +228,7 @@ const LearningHub = () => {
                         <span className="text-[11px] font-black text-blue-400 uppercase tracking-widest">FinMind Learning Hub</span>
                     </motion.div>
                     <motion.h1 variants={fadeUp} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white mb-3 sm:mb-4 md:mb-5 leading-tight">
-                        Master <span className="bg-gradient-to-r from-amber-400 to-amber-300 bg-clip-text text-transparent">Finance</span>
+                        Master <span className="bg-linear-to-r from-amber-400 to-amber-300 bg-clip-text text-transparent">Finance</span>
                         <br className="hidden md:block" /> from the Ground Up
                     </motion.h1>
                     <motion.p variants={fadeUp} className="text-xs sm:text-sm md:text-base lg:text-lg text-slate-400 max-w-2xl mx-auto mb-6 sm:mb-8 md:mb-10">
@@ -316,7 +316,7 @@ const LearningHub = () => {
                             <div key={i}
                                 className="rounded-2xl bg-[#0b1120] border border-slate-800/60 overflow-hidden">
                                 <button
-                                    className="w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors"
+                                    className="w-full flex items-center justify-between p-4 text-left hover:bg-white/2 transition-colors"
                                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
                                 >
                                     <span className="text-[13px] font-semibold text-slate-200 pr-4">{faq.q}</span>

@@ -65,7 +65,7 @@ export default function Documentation() {
   }> = {
     cyan: {
       border: 'border-cyan-500/30 hover:border-cyan-500/50',
-      bg: 'bg-gradient-to-br from-cyan-500/15 to-cyan-600/5',
+      bg: 'bg-linear-to-br from-cyan-500/15 to-cyan-600/5',
       icon: 'text-cyan-400',
       title: 'text-cyan-300',
       badge: 'bg-cyan-500/20 border-cyan-500/30 text-cyan-300',
@@ -78,7 +78,7 @@ export default function Documentation() {
     },
     teal: {
       border: 'border-teal-500/30 hover:border-teal-500/50',
-      bg: 'bg-gradient-to-br from-teal-500/15 to-teal-600/5',
+      bg: 'bg-linear-to-br from-teal-500/15 to-teal-600/5',
       icon: 'text-teal-400',
       title: 'text-teal-300',
       badge: 'bg-teal-500/20 border-teal-500/30 text-teal-300',
@@ -91,7 +91,7 @@ export default function Documentation() {
     },
     blue: {
       border: 'border-blue-500/30 hover:border-blue-500/50',
-      bg: 'bg-gradient-to-br from-blue-500/15 to-blue-600/5',
+      bg: 'bg-linear-to-br from-blue-500/15 to-blue-600/5',
       icon: 'text-blue-400',
       title: 'text-blue-300',
       badge: 'bg-blue-500/20 border-blue-500/30 text-blue-300',
@@ -104,7 +104,7 @@ export default function Documentation() {
     },
     violet: {
       border: 'border-violet-500/30 hover:border-violet-500/50',
-      bg: 'bg-gradient-to-br from-violet-500/15 to-violet-600/5',
+      bg: 'bg-linear-to-br from-violet-500/15 to-violet-600/5',
       icon: 'text-violet-400',
       title: 'text-violet-300',
       badge: 'bg-violet-500/20 border-violet-500/30 text-violet-300',
@@ -144,7 +144,7 @@ export default function Documentation() {
               return (
                 <div
                   key={i}
-                  className={`bg-gradient-to-br from-slate-800/60 to-slate-900/80 border ${colors.border} rounded-xl p-8 sm:p-10 overflow-hidden group relative transition-all hover:shadow-lg ${colors.shadow}`}
+                  className={`bg-linear-to-br from-slate-800/60 to-slate-900/80 border ${colors.border} rounded-xl p-8 sm:p-10 overflow-hidden group relative transition-all hover:shadow-lg ${colors.shadow}`}
                 >
                   {/* Background Decoration */}
                   <div className={`absolute -right-20 -top-20 w-64 h-64 ${colors.blobStrong} rounded-full blur-3xl group-hover:blur-2xl transition-all opacity-50`} />
@@ -153,7 +153,7 @@ export default function Documentation() {
                   <div className="relative z-10 flex flex-col h-full">
                     {/* Header */}
                     <div className="flex items-start gap-4 mb-6">
-                      <div className={`p-4 ${colors.bg} rounded-xl border ${colors.border} flex-shrink-0 group-hover:scale-110 transition-transform`}>
+                      <div className={`p-4 ${colors.bg} rounded-xl border ${colors.border} shrink-0 group-hover:scale-110 transition-transform`}>
                         <Icon className={`w-8 h-8 sm:w-10 sm:h-10 ${colors.icon}`} />
                       </div>
                     </div>
@@ -170,7 +170,7 @@ export default function Documentation() {
                     <div className="space-y-3 mb-8 pt-6 border-t border-slate-700/50">
                       {section.items.map((item, j) => (
                         <div key={j} className="flex items-center gap-3 text-slate-300 text-sm">
-                          <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${colors.dot}`}></div>
+                          <div className={`w-1.5 h-1.5 rounded-full bg-linear-to-r ${colors.dot}`}></div>
                           {item}
                         </div>
                       ))}
@@ -235,7 +235,7 @@ export default function Documentation() {
           </div>
 
           {/* Code Examples Section */}
-          <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/80 border border-emerald-500/30 rounded-xl p-8 sm:p-10 md:p-12 relative overflow-hidden group">
+          <div className="bg-linear-to-br from-slate-800/60 to-slate-900/80 border border-emerald-500/30 rounded-xl p-8 sm:p-10 md:p-12 relative overflow-hidden group">
             {/* Background Decoration */}
             <div className="absolute -right-32 -top-32 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl group-hover:blur-2xl transition-all" />
             <div className="absolute -left-32 bottom-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl" />
@@ -259,7 +259,7 @@ export default function Documentation() {
                   { label: 'Trading Signals', icon: '⚡', color: 'emerald' },
                   { label: 'Portfolio Management', icon: '💼', color: 'emerald' }
                 ].map((example, i) => (
-                  <div key={i} className="p-5 sm:p-6 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-lg hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/10 transition-all cursor-pointer group/item">
+                  <div key={i} className="p-5 sm:p-6 bg-linear-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-lg hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/10 transition-all cursor-pointer group/item">
                     <p className="text-white font-semibold text-sm sm:text-base flex items-center gap-3">
                       <span className="text-xl">{example.icon}</span>
                       {example.label}
@@ -268,7 +268,7 @@ export default function Documentation() {
                 ))}
               </div>
               
-              <button className="inline-flex items-center gap-2 px-7 py-3 sm:py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-900 font-bold rounded-lg hover:shadow-lg hover:shadow-emerald-500/40 transition-all text-sm sm:text-base group/btn">
+              <button className="inline-flex items-center gap-2 px-7 py-3 sm:py-4 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-900 font-bold rounded-lg hover:shadow-lg hover:shadow-emerald-500/40 transition-all text-sm sm:text-base group/btn">
                 Explore Examples
                 <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
               </button>

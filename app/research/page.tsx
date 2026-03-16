@@ -67,7 +67,7 @@ export default function Research() {
           
           {/* Featured Report - Full Width */}
           <div className="mb-16 sm:mb-24">
-            <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/80 border border-cyan-500/30 rounded-xl p-8 sm:p-10 md:p-12 relative overflow-hidden group">
+            <div className="bg-linear-to-br from-slate-800/60 to-slate-900/80 border border-cyan-500/30 rounded-xl p-8 sm:p-10 md:p-12 relative overflow-hidden group">
               {/* Background Decoration */}
               <div className="absolute -right-40 -top-40 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl group-hover:blur-2xl transition-all" />
               <div className="absolute -left-40 bottom-0 w-80 h-80 bg-teal-500/5 rounded-full blur-3xl" />
@@ -78,7 +78,7 @@ export default function Research() {
                   <div className="md:col-span-2 flex flex-col justify-between">
                     {/* Header */}
                     <div className="flex items-center gap-4 mb-6">
-                      <div className="p-3 sm:p-4 bg-gradient-to-br from-cyan-500/30 to-teal-600/20 rounded-xl border border-cyan-500/40 flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <div className="p-3 sm:p-4 bg-linear-to-br from-cyan-500/30 to-teal-600/20 rounded-xl border border-cyan-500/40 shrink-0 group-hover:scale-110 transition-transform">
                         <FeaturedIcon className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-400" />
                       </div>
                       <div className="flex items-center gap-2">
@@ -121,12 +121,12 @@ export default function Research() {
                     </div>
 
                     {/* CTA Box */}
-                    <div className="bg-gradient-to-br from-cyan-500/10 to-teal-500/5 border border-cyan-500/20 rounded-lg p-6 backdrop-blur-sm">
+                    <div className="bg-linear-to-br from-cyan-500/10 to-teal-500/5 border border-cyan-500/20 rounded-lg p-6 backdrop-blur-sm">
                       <div className="text-sm text-slate-400 mb-3 font-medium">Get Full Access</div>
                       <p className="text-xs text-slate-500 mb-6 leading-relaxed">
                         Dive deep into comprehensive market analysis, economic indicators, and investment opportunities.
                       </p>
-                      <button className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-900 font-semibold rounded-lg transition-all text-sm">
+                      <button className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-linear-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-900 font-semibold rounded-lg transition-all text-sm">
                         Read Report
                         <ArrowRight size={16} />
                       </button>
@@ -160,7 +160,7 @@ export default function Research() {
                       <div className={`p-3 rounded-lg ${scheme.bg} border ${scheme.border.split(' ')[0]}`}>
                         <Icon size={20} className={scheme.icon} />
                       </div>
-                      <span className="text-xs text-slate-500 flex-shrink-0">{i + 1}</span>
+                      <span className="text-xs text-slate-500 shrink-0">{i + 1}</span>
                     </div>
                     
                     <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-amber-300 transition-colors">
@@ -195,7 +195,7 @@ export default function Research() {
           </div>
 
           {/* Newsletter Section */}
-          <div className="bg-gradient-to-br from-emerald-500/15 to-teal-600/10 border border-emerald-500/30 rounded-xl p-8 sm:p-10 relative overflow-hidden group">
+          <div className="bg-linear-to-br from-emerald-500/15 to-teal-600/10 border border-emerald-500/30 rounded-xl p-8 sm:p-10 relative overflow-hidden group">
             <div className="absolute -right-20 -top-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl group-hover:blur-2xl transition-all" />
             <div className="absolute -left-20 bottom-0 w-48 h-48 bg-teal-500/5 rounded-full blur-3xl" />
             
@@ -216,7 +216,7 @@ export default function Research() {
 
                 {/* Right CTA */}
                 <div className="flex flex-col items-start md:items-end gap-4">
-                  <button className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-900 font-bold rounded-lg transition-all text-base shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 whitespace-nowrap">
+                  <button className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-900 font-bold rounded-lg transition-all text-base shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 whitespace-nowrap">
                     <BookOpen size={20} />
                     Subscribe Now
                   </button>

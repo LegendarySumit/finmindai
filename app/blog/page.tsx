@@ -83,7 +83,7 @@ export default function Blog() {
       <Header />
       
       {/* Hero Section */}
-      <div className="pt-16 sm:pt-20 md:pt-24 lg:pt-28 pb-8 sm:pb-10 md:pb-12 lg:pb-16 px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 bg-gradient-to-b from-finance-dark/50 to-transparent">
+      <div className="pt-16 sm:pt-20 md:pt-24 lg:pt-28 pb-8 sm:pb-10 md:pb-12 lg:pb-16 px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 bg-linear-to-b from-finance-dark/50 to-transparent">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <Sparkles className="w-6 h-6 text-finance-gold" />
@@ -99,19 +99,19 @@ export default function Blog() {
           
           {/* Featured Post */}
           <div className="mb-16 sm:mb-20">
-            <div className="bg-gradient-to-br from-finance-card to-finance-card/50 border border-finance-gold/30 rounded-xl overflow-hidden hover:border-finance-gold transition-all duration-300 group">
+            <div className="bg-linear-to-br from-finance-card to-finance-card/50 border border-finance-gold/30 rounded-xl overflow-hidden hover:border-finance-gold transition-all duration-300 group">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-                <div className="relative h-80 md:h-full overflow-hidden bg-gradient-to-br from-finance-gold/20 to-amber-600/10">
+                <div className="relative h-80 md:h-full overflow-hidden bg-linear-to-br from-finance-gold/20 to-amber-600/10">
                   <img 
                     src={featuredPost.image} 
                     alt={featuredPost.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-finance-dark/40 to-transparent"></div>
+                  <div className="absolute inset-0 bg-linear-to-r from-finance-dark/40 to-transparent"></div>
                 </div>
                 <div className="p-6 sm:p-8 md:p-10 flex flex-col justify-center">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="px-3 py-1 bg-gradient-to-r from-finance-gold/30 to-amber-600/30 text-finance-gold text-xs font-bold rounded-full border border-finance-gold/50 uppercase tracking-wider">
+                    <span className="px-3 py-1 bg-linear-to-r from-finance-gold/30 to-amber-600/30 text-finance-gold text-xs font-bold rounded-full border border-finance-gold/50 uppercase tracking-wider">
                       Featured
                     </span>
                     <span className="text-slate-500 text-xs">
@@ -168,13 +168,13 @@ export default function Blog() {
                 key={i}
                 className="bg-finance-card border border-finance-border rounded-lg overflow-hidden hover:border-finance-gold hover:shadow-lg hover:shadow-finance-gold/10 transition-all duration-300 group flex flex-col"
               >
-                <div className="relative h-48 sm:h-56 overflow-hidden bg-gradient-to-br from-finance-gold/20 to-amber-600/10">
+                <div className="relative h-48 sm:h-56 overflow-hidden bg-linear-to-br from-finance-gold/20 to-amber-600/10">
                   <img 
                     src={post.image} 
                     alt={post.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-finance-dark/60 to-transparent"></div>
+                  <div className="absolute inset-0 bg-linear-to-t from-finance-dark/60 to-transparent"></div>
                 </div>
                 
                 <div className="p-5 sm:p-6 flex flex-col flex-1">
@@ -215,7 +215,7 @@ export default function Blog() {
           </div>
 
           {/* Newsletter Section */}
-          <div className="bg-gradient-to-r from-finance-gold/20 via-amber-600/10 to-finance-gold/20 border border-finance-gold/40 rounded-xl p-8 sm:p-10 md:p-12">
+          <div className="bg-linear-to-r from-finance-gold/20 via-amber-600/10 to-finance-gold/20 border border-finance-gold/40 rounded-xl p-8 sm:p-10 md:p-12">
             <div className="max-w-2xl mx-auto text-center">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <Zap className="w-5 h-5 text-finance-gold" />
@@ -231,7 +231,7 @@ export default function Blog() {
                   placeholder="Enter your email address"
                   className="flex-1 px-4 sm:px-6 py-3 sm:py-4 bg-finance-darker/50 border border-finance-border rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-finance-gold focus:ring-1 focus:ring-finance-gold/20 transition-all text-sm sm:text-base"
                 />
-                <button className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-slate-900 font-bold rounded-lg hover:shadow-lg hover:shadow-amber-500/50 transition-all whitespace-nowrap text-sm sm:text-base">
+                <button className="px-6 sm:px-8 py-3 sm:py-4 bg-linear-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-slate-900 font-bold rounded-lg hover:shadow-lg hover:shadow-amber-500/50 transition-all whitespace-nowrap text-sm sm:text-base">
                   Subscribe
                 </button>
               </div>
