@@ -5,8 +5,8 @@ const next = require('next');
 const { WebSocketServer } = require('ws');
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = 'localhost';
-const port = process.env.PORT || 3001;
+const hostname = process.env.HOSTNAME || '0.0.0.0';
+const port = Number(process.env.PORT || 3000);
 
 // Initialize Next.js app
 const app = next({ dev, hostname, port });
