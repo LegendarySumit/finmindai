@@ -240,7 +240,7 @@ This project is private and proprietary. All rights reserved.
 
 - GitHub: [@LegendarySumit](https://github.com/LegendarySumit)
 - Project: [finmindai](https://github.com/LegendarySumit/finmindai)
-- Live Demo: [finmindai demo](https://legendarysumit.github.io/finmindai/) (if deployed)
+- Live Demo: [finmindai demo]([https://legendarysumit.github.io/finmindai/](https://finmindai.up.railway.app/)) (if deployed)
 
 ---
 
