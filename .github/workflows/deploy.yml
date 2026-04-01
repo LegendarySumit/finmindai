@@ -81,6 +81,11 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
     
     steps:
       - uses: actions/checkout@v4
@@ -97,24 +102,46 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
+      - name: Verify Vercel token and project access
+        shell: bash
+        run: |
+          set -euo pipefail
+          vercel whoami --token="$VERCEL_TOKEN"
+          curl -sS -f \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID?teamId=$VERCEL_ORG_ID" \
+            >/dev/null
+
       - name: Reset Vercel project link state
         run: rm -rf .vercel
       
       - name: Pull Vercel environment
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SCOPE_ARGS=""
+          if [ -n "${VERCEL_SCOPE:-}" ]; then
+            SCOPE_ARGS="--scope=$VERCEL_SCOPE"
+          fi
+          vercel pull --yes --environment=production $SCOPE_ARGS --token="$VERCEL_TOKEN"
 
       - name: Build with Vercel
-        run: vercel build --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SCOPE_ARGS=""
+          if [ -n "${VERCEL_SCOPE:-}" ]; then
+            SCOPE_ARGS="--scope=$VERCEL_SCOPE"
+          fi
+          vercel build --prod --yes $SCOPE_ARGS --token="$VERCEL_TOKEN"
 
       - name: Deploy to Vercel
-        run: vercel deploy --prebuilt --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SCOPE_ARGS=""
+          if [ -n "${VERCEL_SCOPE:-}" ]; then
+            SCOPE_ARGS="--scope=$VERCEL_SCOPE"
+          fi
+          vercel deploy --prebuilt --prod --yes $SCOPE_ARGS --token="$VERCEL_TOKEN"
       
