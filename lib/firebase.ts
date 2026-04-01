@@ -2,8 +2,16 @@ import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
+const normalizeEnvValue = (value: string | undefined) => {
+  const normalized = (value || '').trim();
+  if (!normalized) return '';
+  const lowered = normalized.toLowerCase();
+  if (lowered === 'undefined' || lowered === 'null') return '';
+  return normalized;
+};
+
 const resolveEnv = (publicKey: string, privateKey: string) =>
-  process.env[publicKey] || process.env[privateKey] || '';
+  normalizeEnvValue(process.env[publicKey]) || normalizeEnvValue(process.env[privateKey]) || '';
 
 const firebaseConfig = {
   apiKey: resolveEnv('NEXT_PUBLIC_FIREBASE_API_KEY', 'FIREBASE_API_KEY'),
@@ -22,8 +30,6 @@ const requiredKeys = {
   NEXT_PUBLIC_FIREBASE_API_KEY: firebaseConfig.apiKey,
   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: firebaseConfig.authDomain,
   NEXT_PUBLIC_FIREBASE_PROJECT_ID: firebaseConfig.projectId,
-  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: firebaseConfig.storageBucket,
-  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: firebaseConfig.messagingSenderId,
   NEXT_PUBLIC_FIREBASE_APP_ID: firebaseConfig.appId,
 } as const;
 
