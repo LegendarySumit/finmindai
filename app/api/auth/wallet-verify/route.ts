@@ -1,6 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { isAddress, verifyMessage } from 'ethers';
 import { adminAuth, adminDb } from '@/lib/firebaseAdmin';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rateLimit';
+import { walletVerifySchema, validateRequest } from '@/lib/validation';
+import { z } from 'zod';
+import { errorResponse, successResponse } from '@/lib/apiResponse';
 
 export const runtime = 'nodejs';
 
@@ -8,10 +12,30 @@ const NONCE_TTL_MS = 5 * 60 * 1000;
 
 export async function POST(req: NextRequest) {
   try {
-    const { address, signature } = await req.json();
+    // Rate limit auth endpoint (prevent brute force)
+    const limitKey = `verify:${getClientIP(req)}`;
+    const limit = checkRateLimit(limitKey, RATE_LIMITS.auth.maxRequests, RATE_LIMITS.auth.windowMs);
+    if (!limit.allowed) {
+      const retryAfter = Math.ceil((limit.resetTime - Date.now()) / 1000);
+      return errorResponse('RATE_LIMITED', `Rate limit exceeded. Retry after ${retryAfter}s`, {
+        status: 429,
+        headers: { 'Retry-After': String(retryAfter) },
+      }
+      );
+    }
+
+    // Validate request
+    const body = await req.json();
+    const validated = await validateRequest<z.infer<typeof walletVerifySchema>>(walletVerifySchema, {
+      walletAddress: body.address || body.walletAddress,
+      signature: body.signature,
+      message: body.message,
+    });
+    const address = validated.walletAddress;
+    const signature = validated.signature;
 
     if (!address || !signature || !isAddress(address)) {
-      return NextResponse.json({ message: 'Valid address and signature are required' }, { status: 400 });
+      return errorResponse('INVALID_PAYLOAD', 'Valid address and signature are required', { status: 400 });
     }
 
     const normalizedAddress = address.toLowerCase();
@@ -19,14 +43,14 @@ export async function POST(req: NextRequest) {
     const nonceSnap = await nonceRef.get();
 
     if (!nonceSnap.exists) {
-      return NextResponse.json({ message: 'Nonce not found. Request a new challenge.' }, { status: 400 });
+      return errorResponse('NONCE_NOT_FOUND', 'Nonce not found. Request a new challenge.', { status: 400 });
     }
 
     const nonceData = nonceSnap.data() as { nonce: string; createdAt: number };
 
     if (Date.now() - nonceData.createdAt > NONCE_TTL_MS) {
       await nonceRef.delete();
-      return NextResponse.json({ message: 'Challenge expired. Please try again.' }, { status: 400 });
+      return errorResponse('NONCE_EXPIRED', 'Challenge expired. Please try again.', { status: 400 });
     }
 
     const message = [
@@ -39,7 +63,7 @@ export async function POST(req: NextRequest) {
     const recoveredAddress = verifyMessage(message, signature).toLowerCase();
 
     if (recoveredAddress !== normalizedAddress) {
-      return NextResponse.json({ message: 'Signature verification failed' }, { status: 401 });
+      return errorResponse('SIGNATURE_INVALID', 'Signature verification failed', { status: 401 });
     }
 
     const uid = `wallet_${normalizedAddress.slice(2)}`;
@@ -71,18 +95,13 @@ export async function POST(req: NextRequest) {
       walletAddress: normalizedAddress,
     });
 
-    return NextResponse.json({
-      success: true,
-      uid,
-      customToken,
-    });
+    return successResponse({ uid, customToken }, { message: 'Wallet verified successfully' });
   } catch (error) {
     console.error('Wallet verification error:', error);
     const detail = error instanceof Error ? error.message : 'Wallet verification failed';
-    return NextResponse.json(
-      {
-        message: process.env.NODE_ENV === 'production' ? 'Wallet verification failed' : detail,
-      },
+    return errorResponse(
+      'WALLET_VERIFY_FAILED',
+      process.env.NODE_ENV === 'production' ? 'Wallet verification failed' : detail,
       { status: 500 }
     );
   }

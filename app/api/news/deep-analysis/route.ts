@@ -1,4 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { requireAuth } from '@/lib/auth';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
+import { deepAnalysisSchema, validateRequest } from '@/lib/validation';
+import { errorResponse, successResponse } from '@/lib/apiResponse';
 
 type Sentiment = 'positive' | 'negative' | 'neutral';
 type TradeBias = 'up' | 'down' | 'watch';
@@ -339,10 +343,31 @@ async function generateWithGemini(input: DeepAnalysisInput): Promise<DeepAnalysi
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as DeepAnalysisInput;
+    // CRITICAL: Require authentication (expensive Gemini API)
+    const uid = await requireAuth(req);
 
+    // Rate limit aggressive (expensive operation - 10/min per user)
+    const limit = checkRateLimit(uid, RATE_LIMITS.expensive.maxRequests, RATE_LIMITS.expensive.windowMs);
+    if (!limit.allowed) {
+      const retryAfter = Math.ceil((limit.resetTime - Date.now()) / 1000);
+      return errorResponse(
+        'RATE_LIMITED',
+        `This operation is rate limited. You can run ${RATE_LIMITS.expensive.maxRequests} analyses per minute. Retry after ${retryAfter}s`,
+        { status: 429, headers: { 'Retry-After': String(retryAfter) } }
+      );
+    }
+
+    // Validate request
+    const body = await req.json();
+    await validateRequest(deepAnalysisSchema, {
+      symbol: body?.news?.category === 'Crypto' ? 'BTC' : 'SPY',
+      analysisType: 'comprehensive',
+      timeframe: 'daily',
+    });
+
+    // Deep analysis requests are flexible in format, so we perform basic payload validation
     if (!body?.news?.title || !body?.news?.aiInsight || !body?.news?.sentiment) {
-      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
+      return errorResponse('VALIDATION_ERROR', 'Invalid payload: requires news.title, news.aiInsight, news.sentiment', { status: 400 });
     }
 
     const fallback = buildFallback(body);
@@ -365,13 +390,13 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    return NextResponse.json({
+    return successResponse({
       analysis: {
         ...merged,
         stockIdeas: enrichedIdeas,
       },
-    });
+    }, { message: 'Deep analysis generated successfully' });
   } catch {
-    return NextResponse.json({ error: 'Failed to generate deep analysis' }, { status: 500 });
+    return errorResponse('ANALYSIS_FAILED', 'Failed to generate deep analysis', { status: 500 });
   }
 }

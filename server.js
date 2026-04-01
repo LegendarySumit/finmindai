@@ -3,10 +3,84 @@ const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
 const { WebSocketServer } = require('ws');
+const { cert, getApp, getApps, initializeApp } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = process.env.HOSTNAME || '0.0.0.0';
 const port = Number(process.env.PORT || 3000);
+
+function parseServiceAccountFromEnv() {
+  const base64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+
+  if (base64) {
+    const decoded = Buffer.from(base64, 'base64').toString('utf-8');
+    const parsed = JSON.parse(decoded);
+    return {
+      ...parsed,
+      private_key: parsed.private_key.replace(/\\n/g, '\n'),
+    };
+  }
+
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
+
+  if (!projectId || !clientEmail || !privateKey) {
+    throw new Error(
+      'Missing Firebase Admin credentials. Set FIREBASE_SERVICE_ACCOUNT_BASE64 or FIREBASE_PROJECT_ID/FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY.'
+    );
+  }
+
+  return {
+    project_id: projectId,
+    client_email: clientEmail,
+    private_key: privateKey,
+  };
+}
+
+function getAdminAuth() {
+  if (!getApps().length) {
+    const serviceAccount = parseServiceAccountFromEnv();
+    initializeApp({
+      credential: cert({
+        projectId: serviceAccount.project_id,
+        clientEmail: serviceAccount.client_email,
+        privateKey: serviceAccount.private_key,
+      }),
+    });
+  }
+
+  return getAuth(getApp());
+}
+
+function extractBearerToken(req) {
+  const header = req.headers.authorization || '';
+  if (header.startsWith('Bearer ')) {
+    return header.slice(7).trim();
+  }
+
+  const reqUrl = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
+  const tokenFromQuery = reqUrl.searchParams.get('token');
+  return tokenFromQuery || null;
+}
+
+async function verifyWsToken(req) {
+  const token = extractBearerToken(req);
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const decoded = await getAdminAuth().verifyIdToken(token);
+    return {
+      uid: decoded.uid,
+      email: decoded.email || null,
+    };
+  } catch {
+    return null;
+  }
+}
 
 // Initialize Next.js app
 const app = next({ dev, hostname, port });
@@ -29,11 +103,20 @@ app.prepare().then(() => {
   // Create WebSocket server and explicitly route upgrade requests.
   const wss = new WebSocketServer({ noServer: true });
 
-  server.on('upgrade', (req, socket, head) => {
+  server.on('upgrade', async (req, socket, head) => {
     const { pathname } = parse(req.url || '', true);
 
     if (pathname === '/ws') {
+      const identity = await verifyWsToken(req);
+      if (!identity) {
+        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+
       wss.handleUpgrade(req, socket, head, (ws) => {
+        ws.uid = identity.uid;
+        ws.email = identity.email;
         wss.emit('connection', ws, req);
       });
       return;
@@ -73,12 +156,6 @@ app.prepare().then(() => {
   }
   
   function generateNewsUpdate() {
-    const newsTemplates = [
-      { template: '{subject} {action} {object} {context}', sentiment: 'positive' },
-      { template: '{subject} {action} {object} {context}', sentiment: 'negative' },
-      { template: '{subject} {action} {object} {context}', sentiment: 'neutral' },
-    ];
-
     const subjects = ['Apple', 'Tesla', 'Nvidia', 'Bitcoin', 'The Fed', 'Oil Prices', 'Goldman Sachs', 'Google'];
     const actions = ['surges after', 'plunges due to', 'announces', 'reveals plans for', 'warns about', 'secures deal with'];
     const objects = ['record earnings', 'supply chain crisis', 'AI breakthrough', 'regulatory crackdown', 'interest rate hike', 'merger talks'];
@@ -118,7 +195,12 @@ app.prepare().then(() => {
 
   // Connection handler
   wss.on('connection', (ws) => {
-    console.log('🔗 New WebSocket client connected');
+    if (!ws.uid) {
+      ws.close(4001, 'Unauthorized');
+      return;
+    }
+
+    console.log('🔗 New authenticated WebSocket client connected', ws.uid);
 
     // Send welcome message
     ws.send(JSON.stringify({

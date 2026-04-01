@@ -81,23 +81,27 @@ FinMindAI is designed to grow into a complete advisory ecosystem with portfolio 
 ```text
 finmindai/
 |- app/
+|  |- api/
+|  |  |- auth/
+|  |  |- docs/
+|  |  |- health/
+|  |  |- news/
+|  |  |- stock/
 |  |- globals.css
 |  |- layout.tsx
 |  |- page.tsx
-|- components/
-|  |- Header.tsx
-|  |- Hero.tsx
-|  |- Features.tsx
-|  |- StockPlayground.tsx
-|  |- MarketIntelligence.tsx
-|  |- MarketIntelligenceReal.tsx
-|  |- CTA.tsx
-|  |- Footer.tsx
-|- hooks/
-|  |- useWebSocket.ts
 |- lib/
+|  |- apiResponse.ts
+|  |- auth.ts
+|  |- emailVerification.ts
+|  |- env.ts
+|  |- firebaseAdmin.ts
+|  |- rateLimit.ts
+|  |- securityHeaders.ts
+|  |- validation.ts
 |- public/
 |- server.js
+|- proxy.ts
 |- package.json
 |- tsconfig.json
 |- next.config.ts
@@ -152,8 +156,7 @@ FIREBASE_SERVICE_ACCOUNT_BASE64=
 3. Create Firestore database.
 4. Add project web credentials to .env.local.
 5. Add FIREBASE_SERVICE_ACCOUNT_BASE64 for wallet verify flow.
-6. Deploy secure Firestore rules and keep wallet_nonces locked from client access.
-7. Restart dev server after env updates.
+6. Restart dev server after env updates.
 
 ---
 
@@ -170,6 +173,12 @@ WebSocket endpoint:
 ```text
 ws://localhost:3000/ws
 ```
+
+WebSocket authentication:
+
+- Include Firebase ID token in the `Authorization` header as `Bearer <token>`.
+- Alternative for browser clients: `ws://localhost:3000/ws?token=<firebase_id_token>`.
+- Unauthenticated upgrade requests are rejected with HTTP 401.
 
 ---
 
@@ -189,6 +198,88 @@ curl -X POST http://localhost:3000/api/auth/wallet-nonce \
   -H "Content-Type: application/json" \
   -d "{\"walletAddress\":\"0xYourWallet\"}"
 ```
+
+## 🧭 Production Operations
+
+- Deployment, rollback, backup, and monitoring guidance are consolidated below.
+
+### Required launch checks
+
+1. `npm run lint`
+2. `npm run test:ci`
+3. `npm run build`
+4. Verify `/api/health` and authenticated `/ws` after deployment
+
+### Pre-Deploy Checklist
+
+1. Ensure required env vars are set in deployment platform.
+2. Confirm Firebase Admin credentials are valid.
+3. Confirm GitHub Actions secrets are configured.
+4. Run local gates:
+  - `npm install`
+  - `npm run lint`
+  - `npm run test:ci`
+  - `npm run build`
+
+### Deploy Sequence
+
+1. Push to `master` or `main`.
+2. Wait for CI workflow test job to pass.
+3. Wait for deploy workflow to finish.
+
+### Post-Deploy Smoke Checks
+
+1. `GET /api/health` returns `success: true`.
+2. `GET /api/news` returns `success: true`.
+3. `GET /api/stock?symbol=AAPL` returns `success: true`.
+4. `POST /api/auth/wallet-nonce` works and returns rate-limit headers when stressed.
+5. `/ws` rejects unauthenticated upgrades with HTTP 401.
+6. `/ws` accepts authenticated Firebase ID token.
+
+### Rollback
+
+1. Re-deploy previous stable image/commit.
+2. Re-run smoke checks.
+3. If auth is impacted, rotate Firebase service account key.
+
+### Incident Handling
+
+1. Declare incident severity (`SEV-1`, `SEV-2`, `SEV-3`).
+2. Freeze deployments for `SEV-1` and `SEV-2`.
+3. Capture logs for failing route and timeframe.
+4. Mitigate with feature flag or rollback.
+5. Publish post-incident summary with root cause and prevention action.
+
+### Backup and Recovery
+
+1. Back up Firestore data exports daily.
+2. Keep deployment env snapshots (without plaintext secret dumps).
+3. Retain 30 daily backups and 12 monthly backups.
+4. Restore procedure:
+  - Identify restore point.
+  - Import into staging first.
+  - Validate integrity.
+  - Apply to production after sign-off.
+5. Targets:
+  - `RPO`: 24 hours
+  - `RTO`: 2 hours
+
+### Monitoring and Alerting
+
+1. Track core metrics:
+  - API success rate
+  - API p95 latency (`/api/news`, `/api/stock`, `/api/news/deep-analysis`)
+  - WebSocket active connections and auth failure count
+  - `401/403/429/5xx` rates
+2. Alert thresholds:
+  - API `5xx > 2%` for 5 minutes
+  - `/api/health` unhealthy for 2 consecutive checks
+  - WebSocket unauthorized upgrades > 100 in 10 minutes
+  - Deep-analysis failures > 10% in 10 minutes
+3. Logging rules:
+  - JSON structured logs with route, status, duration, correlation id
+  - Never log raw secrets or ID tokens
+  - Redact sensitive user identifiers where feasible
 
 ---
 
@@ -224,7 +315,7 @@ curl -X POST http://localhost:3000/api/auth/wallet-nonce \
 - [ ] Community Chat with expert-led channels
 - [ ] Paper trading simulation mode
 - [ ] Advanced charting integration
-- [ ] Production deployment and observability pipeline
+- [x] Production deployment and observability pipeline baseline
 
 ---
 

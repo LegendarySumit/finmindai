@@ -1,15 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rateLimit';
+import { stockQuerySchema, validateRequest } from '@/lib/validation';
+import { errorResponse, successResponse } from '@/lib/apiResponse';
 
 // GET /api/stock?symbol=TSLA
 export async function GET(req: NextRequest) {
+    // Rate limiting (public endpoint - generous limits)
+    const ip = getClientIP(req);
+    const limit = checkRateLimit(ip, RATE_LIMITS.read.maxRequests, RATE_LIMITS.read.windowMs);
+    if (!limit.allowed) {
+        const retryAfter = Math.ceil((limit.resetTime - Date.now()) / 1000);
+        return errorResponse('RATE_LIMITED', `Rate limit exceeded. Retry after ${retryAfter}s`, {
+            status: 429,
+            headers: { 'Retry-After': String(retryAfter) },
+        });
+    }
+
+    // Validate request
+    try {
+        const symbol = req.nextUrl.searchParams.get('symbol');
+        await validateRequest(stockQuerySchema, { symbol });
+    } catch (error) {
+        return errorResponse('VALIDATION_ERROR', error instanceof Error ? error.message : 'validation error', { status: 400 });
+    }
+
     const symbol = req.nextUrl.searchParams.get('symbol');
     if (!symbol) {
-        return NextResponse.json({ error: 'symbol is required' }, { status: 400 });
+        return errorResponse('VALIDATION_ERROR', 'symbol is required', { status: 400 });
     }
 
     const apiKey = process.env.FINNHUB_API_KEY;
     if (!apiKey) {
-        return NextResponse.json({ error: 'FINNHUB_API_KEY not configured' }, { status: 500 });
+        return errorResponse('CONFIG_ERROR', 'FINNHUB_API_KEY not configured', { status: 500 });
     }
 
     const [quoteRes, profileRes] = await Promise.all([
@@ -18,14 +40,14 @@ export async function GET(req: NextRequest) {
     ]);
 
     if (!quoteRes.ok) {
-        return NextResponse.json({ error: 'Failed to fetch quote' }, { status: 502 });
+        return errorResponse('UPSTREAM_ERROR', 'Failed to fetch quote', { status: 502 });
     }
 
     const quote = await quoteRes.json();
     const profile = profileRes.ok ? await profileRes.json() : {};
 
     // Finnhub quote fields: c=current, d=change, dp=change%, h=high, l=low, o=open, pc=prev close
-    return NextResponse.json({
+    return successResponse({
         symbol,
         name: profile.name ?? symbol,
         price: quote.c,
@@ -36,5 +58,5 @@ export async function GET(req: NextRequest) {
         open: quote.o,
         prevClose: quote.pc,
         timestamp: quote.t,
-    });
+    }, { message: 'Stock quote fetched successfully' });
 }

@@ -1,4 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rateLimit';
+import { errorResponse, successResponse } from '@/lib/apiResponse';
 
 const FINNHUB_KEY = process.env.FINNHUB_API_KEY;
 
@@ -42,9 +44,20 @@ function deriveImpact(text: string, sentiment: Sentiment): number {
     return Math.min(10, parseFloat((base + hits * 0.45 + Math.random() * 1.2).toFixed(1)));
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+    // Rate limiting (public endpoint - generous limits)
+    const ip = getClientIP(req);
+    const limit = checkRateLimit(ip, RATE_LIMITS.read.maxRequests, RATE_LIMITS.read.windowMs);
+    if (!limit.allowed) {
+        const retryAfter = Math.ceil((limit.resetTime - Date.now()) / 1000);
+        return errorResponse('RATE_LIMITED', `Rate limit exceeded. Retry after ${retryAfter}s`, {
+            status: 429,
+            headers: { 'Retry-After': String(retryAfter) },
+        });
+    }
+
     if (!FINNHUB_KEY) {
-        return NextResponse.json({ error: 'FINNHUB_API_KEY not configured' }, { status: 500 });
+        return errorResponse('CONFIG_ERROR', 'FINNHUB_API_KEY not configured', { status: 500 });
     }
 
     try {
@@ -83,8 +96,8 @@ export async function GET() {
                 };
             });
 
-        return NextResponse.json({ items, lastUpdated: Date.now() });
+        return successResponse({ items, lastUpdated: Date.now() }, { message: 'News feed fetched successfully' });
     } catch {
-        return NextResponse.json({ error: 'Failed to fetch news feed' }, { status: 502 });
+        return errorResponse('UPSTREAM_ERROR', 'Failed to fetch news feed', { status: 502 });
     }
 }
