@@ -102,20 +102,25 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Verify Vercel token and project access
+      - name: Prepare Vercel context
         shell: bash
         run: |
           set -euo pipefail
           VERCEL_TOKEN_CLEAN="$(printf %s "$VERCEL_TOKEN" | tr -d '\r\n')"
           VERCEL_ORG_ID_CLEAN="$(printf %s "$VERCEL_ORG_ID" | tr -d '\r\n')"
           VERCEL_PROJECT_ID_CLEAN="$(printf %s "$VERCEL_PROJECT_ID" | tr -d '\r\n')"
+          VERCEL_SCOPE_CLEAN="$(printf %s "${VERCEL_SCOPE:-}" | tr -d '\r\n')"
+
+          if [ -z "$VERCEL_SCOPE_CLEAN" ]; then
+            VERCEL_SCOPE_CLEAN="${GITHUB_REPOSITORY_OWNER,,}"
+          fi
+
+          echo "VERCEL_TOKEN=$VERCEL_TOKEN_CLEAN" >> "$GITHUB_ENV"
+          echo "VERCEL_ORG_ID=$VERCEL_ORG_ID_CLEAN" >> "$GITHUB_ENV"
+          echo "VERCEL_PROJECT_ID=$VERCEL_PROJECT_ID_CLEAN" >> "$GITHUB_ENV"
+          echo "VERCEL_SCOPE=$VERCEL_SCOPE_CLEAN" >> "$GITHUB_ENV"
 
           vercel whoami --token="$VERCEL_TOKEN_CLEAN"
-          curl -sS -f --get \
-            -H "Authorization: Bearer $VERCEL_TOKEN_CLEAN" \
-            --data-urlencode "teamId=$VERCEL_ORG_ID_CLEAN" \
-            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID_CLEAN" \
-            >/dev/null
 
       - name: Reset Vercel project link state
         run: rm -rf .vercel
@@ -124,29 +129,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          SCOPE_ARGS=""
-          if [ -n "${VERCEL_SCOPE:-}" ]; then
-            SCOPE_ARGS="--scope=$VERCEL_SCOPE"
+          if vercel pull --yes --environment=production --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"; then
+            exit 0
           fi
-          vercel pull --yes --environment=production $SCOPE_ARGS --token="$VERCEL_TOKEN"
+
+          echo "Primary pull failed. Retrying without VERCEL_ORG_ID override..."
+          unset VERCEL_ORG_ID
+          vercel pull --yes --environment=production --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
 
       - name: Build with Vercel
         shell: bash
         run: |
           set -euo pipefail
-          SCOPE_ARGS=""
-          if [ -n "${VERCEL_SCOPE:-}" ]; then
-            SCOPE_ARGS="--scope=$VERCEL_SCOPE"
-          fi
-          vercel build --prod --yes $SCOPE_ARGS --token="$VERCEL_TOKEN"
+          vercel build --prod --yes --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
 
       - name: Deploy to Vercel
         shell: bash
         run: |
           set -euo pipefail
-          SCOPE_ARGS=""
-          if [ -n "${VERCEL_SCOPE:-}" ]; then
-            SCOPE_ARGS="--scope=$VERCEL_SCOPE"
-          fi
-          vercel deploy --prebuilt --prod --yes $SCOPE_ARGS --token="$VERCEL_TOKEN"
+          vercel deploy --prebuilt --prod --yes --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
       
