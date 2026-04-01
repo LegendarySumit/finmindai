@@ -26,6 +26,8 @@ FinMindAI is a full-stack educational platform that combines finance learning co
 
 The platform uses a Next.js App Router frontend with a custom Node.js server and WebSocket support for live market intelligence feeds. It also integrates Firebase Authentication and Firestore to support secure user identity, wallet-assisted authentication flows, and per-user activity tracking.
 
+Recent backend hardening introduced standardized API response envelopes, centralized security headers, WebSocket auth enforcement, and production CI/CD improvements for safer releases.
+
 FinMindAI is designed to grow into a complete advisory ecosystem with portfolio analysis, strategy recommendations, and collaborative learning features.
 
 ---
@@ -39,6 +41,9 @@ FinMindAI is designed to grow into a complete advisory ecosystem with portfolio 
 - ✅ Impact scoring for market-moving events
 - ✅ Firebase Auth (Google, Email/Password, wallet custom-token flow)
 - ✅ Firestore-backed user profile and activity timeline tracking
+- ✅ Hardened backend API responses and security headers
+- ✅ Authenticated WebSocket upgrades with Firebase token checks
+- ✅ Dockerized runtime and GitHub Actions deployment pipeline
 - 🚧 Portfolio Analyzer (planned)
 - 🚧 AI Strategy Advisor (planned)
 - 🚧 Community Chat (planned)
@@ -74,6 +79,15 @@ FinMindAI is designed to grow into a complete advisory ecosystem with portfolio 
 | Firebase Admin | 13.7.0 | Secure server-side token workflows |
 | Firestore | - | User profiles and activity logs |
 
+### DevOps and Deployment
+
+| Technology | Purpose |
+|---|---|
+| GitHub Actions | Test, security, build, and deploy automation |
+| Docker + Buildx | Containerized build and image publish flow |
+| GHCR | Container image registry |
+| Vercel CLI | Production deployment orchestration |
+
 ---
 
 ## 📁 Project Structure
@@ -81,6 +95,11 @@ FinMindAI is designed to grow into a complete advisory ecosystem with portfolio 
 ```text
 finmindai/
 |- app/
+|- .github/
+|  |- workflows/
+|  |  |- test.yml
+|  |  |- security.yml
+|  |  |- deploy.yml
 |  |- api/
 |  |  |- auth/
 |  |  |- docs/
@@ -102,6 +121,8 @@ finmindai/
 |- public/
 |- server.js
 |- proxy.ts
+|- Dockerfile
+|- docker-compose.yml
 |- package.json
 |- tsconfig.json
 |- next.config.ts
@@ -127,6 +148,13 @@ npm install
 npm run dev
 ```
 
+Production run:
+
+```bash
+npm run build
+npm start
+```
+
 Open in browser:
 
 ```text
@@ -147,6 +175,17 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 FIREBASE_SERVICE_ACCOUNT_BASE64=
+```
+
+Production deployment secrets (GitHub Actions):
+
+```env
+VERCEL_TOKEN=
+VERCEL_ORG_ID=
+VERCEL_PROJECT_ID=
+VERCEL_SCOPE=
+DOCKER_USERNAME=
+DOCKER_PASSWORD=
 ```
 
 ### Firebase Setup Checklist
@@ -227,6 +266,19 @@ curl -X POST http://localhost:3000/api/auth/wallet-nonce \
 2. Wait for CI workflow test job to pass.
 3. Wait for deploy workflow to finish.
 
+### Current CI/CD Implementation
+
+1. `test.yml` runs lint, type checks, tests, and build verification.
+2. `security.yml` runs dependency audit, secret scan, SAST, container scan, and SARIF upload.
+3. `deploy.yml` runs Trivy scan, Docker build/publish path, and Vercel deployment with fallback-safe linking.
+
+### Docker Deployment
+
+```bash
+docker build -t finmindai:latest .
+docker run -p 3000:3000 --env-file .env.local finmindai:latest
+```
+
 ### Post-Deploy Smoke Checks
 
 1. `GET /api/health` returns `success: true`.
@@ -305,6 +357,7 @@ curl -X POST http://localhost:3000/api/auth/wallet-nonce \
 | Wallet login fails | Missing FIREBASE_SERVICE_ACCOUNT_BASE64 | Add encoded service account JSON |
 | Realtime feed not updating | WebSocket disconnected | Ensure npm run dev starts custom server.js |
 | Port conflict on 3000 | Another process using port | Stop conflicting process or reconfigure port |
+| Vercel pull fails in CI | Scope/ID mismatch | Set `VERCEL_SCOPE`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` correctly |
 
 ---
 
@@ -321,7 +374,13 @@ curl -X POST http://localhost:3000/api/auth/wallet-nonce \
 
 ## 📄 License
 
-This project is private and proprietary. All rights reserved.
+This project is licensed under the MIT License. See `LICENSE` for full text.
+
+---
+
+## 🏷️ GitHub Repository Tags
+
+`fintech`, `ai`, `nextjs`, `typescript`, `firebase`, `websocket`, `vercel`, `docker`, `ci-cd`, `market-intelligence`
 
 ---
 
