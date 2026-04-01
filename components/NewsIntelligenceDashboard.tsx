@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
+import { useAuth } from '@/lib/authContext';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -111,6 +112,7 @@ const SkeletonCard = ({ i }: { i: number }) => (
 );
 
 const NewsIntelligenceDashboard = () => {
+    const { isAuthenticated } = useAuth();
     const [newsFeed, setNewsFeed] = useState<NewsItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isPaused, setIsPaused] = useState(false);
@@ -186,6 +188,11 @@ const NewsIntelligenceDashboard = () => {
     const generateDeepAnalysis = useCallback(async () => {
         if (!selectedNews) return;
 
+        if (!isAuthenticated) {
+            setAnalysisError('Sign in is required to generate deep analysis.');
+            return;
+        }
+
         const targetNews = selectedNews;
         setAnalysisError(null);
         setAnalysisLoadingId(targetNews.id);
@@ -235,7 +242,7 @@ const NewsIntelligenceDashboard = () => {
         } finally {
             setAnalysisLoadingId(null);
         }
-    }, [selectedNews, newsFeed]);
+    }, [selectedNews, newsFeed, isAuthenticated]);
 
     const sentimentStats = useMemo(() => {
         const s = { positive: 0, negative: 0, neutral: 0 };
@@ -795,7 +802,7 @@ const NewsIntelligenceDashboard = () => {
                                 <div className="p-3 sm:p-5 border-t border-slate-800/60 shrink-0">
                                     <button
                                         onClick={generateDeepAnalysis}
-                                        disabled={isGeneratingAnalysis}
+                                        disabled={isGeneratingAnalysis || !isAuthenticated}
                                         className="w-full py-2.5 sm:py-3 bg-linear-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:opacity-60 disabled:cursor-not-allowed text-slate-950 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-amber-900/20 flex items-center justify-center gap-2 group"
                                     >
                                         {isGeneratingAnalysis ? 'Generating...' : activeAnalysis ? 'Refresh Deep Analysis' : 'Generate Deep Analysis'}
