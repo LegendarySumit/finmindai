@@ -378,12 +378,6 @@ This project is licensed under the MIT License. See `LICENSE` for full text.
 
 ---
 
-## 🏷️ GitHub Repository Tags
-
-`fintech`, `ai`, `nextjs`, `typescript`, `firebase`, `websocket`, `vercel`, `docker`, `ci-cd`, `market-intelligence`
-
----
-
 ## 👨‍💻 Author
 
 **LegendarySumit**
