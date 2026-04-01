@@ -10,20 +10,29 @@ const normalizeEnvValue = (value: string | undefined) => {
   return normalized;
 };
 
-const resolveEnv = (publicKey: string, privateKey: string) =>
-  normalizeEnvValue(process.env[publicKey]) || normalizeEnvValue(process.env[privateKey]) || '';
+const resolveEnv = (publicValue?: string, privateValue?: string) =>
+  normalizeEnvValue(publicValue) || normalizeEnvValue(privateValue) || '';
 
 const firebaseConfig = {
-  apiKey: resolveEnv('NEXT_PUBLIC_FIREBASE_API_KEY', 'FIREBASE_API_KEY'),
-  authDomain: resolveEnv('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN', 'FIREBASE_AUTH_DOMAIN'),
-  projectId: resolveEnv('NEXT_PUBLIC_FIREBASE_PROJECT_ID', 'FIREBASE_PROJECT_ID'),
-  storageBucket: resolveEnv('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET', 'FIREBASE_STORAGE_BUCKET'),
-  messagingSenderId: resolveEnv(
-    'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-    'FIREBASE_MESSAGING_SENDER_ID'
+  apiKey: resolveEnv(process.env.NEXT_PUBLIC_FIREBASE_API_KEY, process.env.FIREBASE_API_KEY),
+  authDomain: resolveEnv(
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    process.env.FIREBASE_AUTH_DOMAIN
   ),
-  appId: resolveEnv('NEXT_PUBLIC_FIREBASE_APP_ID', 'FIREBASE_APP_ID'),
-  measurementId: resolveEnv('NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID', 'FIREBASE_MEASUREMENT_ID'),
+  projectId: resolveEnv(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID, process.env.FIREBASE_PROJECT_ID),
+  storageBucket: resolveEnv(
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    process.env.FIREBASE_STORAGE_BUCKET
+  ),
+  messagingSenderId: resolveEnv(
+    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    process.env.FIREBASE_MESSAGING_SENDER_ID
+  ),
+  appId: resolveEnv(process.env.NEXT_PUBLIC_FIREBASE_APP_ID, process.env.FIREBASE_APP_ID),
+  measurementId: resolveEnv(
+    process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+    process.env.FIREBASE_MEASUREMENT_ID
+  ),
 };
 
 const requiredKeys = {
