@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { randomInt } from 'crypto';
 
 export interface PasswordStrengthResult {
   score: 0 | 1 | 2 | 3 | 4; // 0 = very weak, 4 = very strong
@@ -155,6 +156,7 @@ export function getPasswordStrengthColor(score: number): string {
 
 /**
  * Generate secure random password (for password reset scenarios)
+ * Uses cryptographically secure randomness (crypto.randomInt)
  */
 export function generateSecurePassword(): string {
   const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -164,21 +166,24 @@ export function generateSecurePassword(): string {
   
   let password = '';
   
-  // Ensure at least one of each required character type
-  password += uppercase[Math.floor(Math.random() * uppercase.length)];
-  password += lowercase[Math.floor(Math.random() * lowercase.length)];
-  password += numbers[Math.floor(Math.random() * numbers.length)];
-  password += special[Math.floor(Math.random() * special.length)];
+  // Ensure at least one of each required character type (using cryptographic randomness)
+  password += uppercase[randomInt(0, uppercase.length)];
+  password += lowercase[randomInt(0, lowercase.length)];
+  password += numbers[randomInt(0, numbers.length)];
+  password += special[randomInt(0, special.length)];
   
   // Fill remaining length with random characters from all sets
   const allChars = uppercase + lowercase + numbers + special;
   for (let i = password.length; i < 16; i++) {
-    password += allChars[Math.floor(Math.random() * allChars.length)];
+    password += allChars[randomInt(0, allChars.length)];
   }
   
-  // Shuffle password
-  return password
-    .split('')
-    .sort(() => Math.random() - 0.5)
-    .join('');
+  // Shuffle password using cryptographic randomness
+  const chars = password.split('');
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = randomInt(0, i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  
+  return chars.join('');
 }
