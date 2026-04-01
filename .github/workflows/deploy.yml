@@ -115,6 +115,11 @@ jobs:
             VERCEL_SCOPE_CLEAN="${GITHUB_REPOSITORY_OWNER,,}"
           fi
 
+          if [ -z "$VERCEL_ORG_ID_CLEAN" ] || [ -z "$VERCEL_PROJECT_ID_CLEAN" ]; then
+            echo "VERCEL_ORG_ID and VERCEL_PROJECT_ID must both be set in GitHub secrets."
+            exit 1
+          fi
+
           echo "VERCEL_TOKEN=$VERCEL_TOKEN_CLEAN" >> "$GITHUB_ENV"
           echo "VERCEL_ORG_ID=$VERCEL_ORG_ID_CLEAN" >> "$GITHUB_ENV"
           echo "VERCEL_PROJECT_ID=$VERCEL_PROJECT_ID_CLEAN" >> "$GITHUB_ENV"
@@ -129,23 +134,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if vercel pull --yes --environment=production --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"; then
-            exit 0
-          fi
-
-          echo "Primary pull failed. Retrying without VERCEL_ORG_ID override..."
-          unset VERCEL_ORG_ID
-          vercel pull --yes --environment=production --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
 
       - name: Build with Vercel
         shell: bash
         run: |
           set -euo pipefail
-          vercel build --prod --yes --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
+          vercel build --prod --yes --token="$VERCEL_TOKEN"
 
       - name: Deploy to Vercel
         shell: bash
         run: |
           set -euo pipefail
-          vercel deploy --prebuilt --prod --yes --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
+          vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN"
       
