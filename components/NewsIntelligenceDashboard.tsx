@@ -133,7 +133,13 @@ const NewsIntelligenceDashboard = () => {
         try {
             const res = await fetch('/api/news');
             if (!res.ok) throw new Error('fetch failed');
-            const { items }: { items: NewsItem[] } = await res.json();
+            const payload = await res.json();
+            const items = (payload?.data?.items ?? payload?.items ?? []) as NewsItem[];
+
+            if (!Array.isArray(items)) {
+                throw new Error('Invalid news payload');
+            }
+
             const fresh = new Set<number>();
             setNewsFeed(prev => {
                 const existingIds = new Set(prev.map(n => n.id));
@@ -211,10 +217,10 @@ const NewsIntelligenceDashboard = () => {
             const payload = await res.json();
 
             if (!res.ok) {
-                throw new Error(payload?.error || 'Failed to generate deep analysis');
+                throw new Error(payload?.error?.message || payload?.error || 'Failed to generate deep analysis');
             }
 
-            const analysis = payload?.analysis as DeepAnalysisResult | undefined;
+            const analysis = (payload?.data?.analysis ?? payload?.analysis) as DeepAnalysisResult | undefined;
             if (!analysis) {
                 throw new Error('No analysis returned');
             }

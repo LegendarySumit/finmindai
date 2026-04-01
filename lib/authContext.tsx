@@ -479,12 +479,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         body: JSON.stringify({ address }),
       });
 
+      const noncePayload = await nonceResponse.json();
+
       if (!nonceResponse.ok) {
-        const nonceError = await nonceResponse.json();
-        throw new Error(nonceError.message || 'Failed to start wallet authentication');
+        throw new Error(noncePayload?.error?.message || noncePayload?.message || 'Failed to start wallet authentication');
       }
 
-      const { message } = (await nonceResponse.json()) as { message: string };
+      const nonceData = (noncePayload?.data ?? noncePayload) as { message?: string };
+      const message = nonceData?.message;
+
+      if (!message) {
+        throw new Error('Wallet nonce message missing from server response');
+      }
 
       const signature = (await window.ethereum.request({
         method: 'personal_sign',
@@ -497,12 +503,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         body: JSON.stringify({ address, signature }),
       });
 
+      const verifyPayload = await verifyResponse.json();
+
       if (!verifyResponse.ok) {
-        const verifyError = await verifyResponse.json();
-        throw new Error(verifyError.message || 'Wallet verification failed');
+        throw new Error(verifyPayload?.error?.message || verifyPayload?.message || 'Wallet verification failed');
       }
 
-      const verifyData = (await verifyResponse.json()) as { customToken: string };
+      const verifyData = (verifyPayload?.data ?? verifyPayload) as { customToken?: string };
+      if (!verifyData?.customToken) {
+        throw new Error('Wallet verification token missing from server response');
+      }
+
       const credential = await signInWithCustomToken(auth, verifyData.customToken);
       await upsertUserProfileSafely(credential.user, 'wallet', address.toLowerCase());
       await trackActivityByUidSafely(credential.user.uid, 'wallet', 'auth_wallet_login', {

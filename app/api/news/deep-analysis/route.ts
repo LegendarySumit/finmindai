@@ -396,7 +396,18 @@ export async function POST(req: NextRequest) {
         stockIdeas: enrichedIdeas,
       },
     }, { message: 'Deep analysis generated successfully' });
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to generate deep analysis';
+
+    if (message.includes('Missing or invalid Authorization header') || message.startsWith('Unauthorized:')) {
+      return errorResponse('UNAUTHORIZED', 'Authentication required to generate deep analysis', { status: 401 });
+    }
+
+    if (message.toLowerCase().includes('validation')) {
+      return errorResponse('VALIDATION_ERROR', message, { status: 400 });
+    }
+
+    console.error('Deep analysis route error:', error);
     return errorResponse('ANALYSIS_FAILED', 'Failed to generate deep analysis', { status: 500 });
   }
 }

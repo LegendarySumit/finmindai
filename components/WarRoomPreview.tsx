@@ -52,9 +52,24 @@ const WarRoomPreview = () => {
             const res = await fetch(`/api/stock?symbol=${SYMBOL}`);
             if (!res.ok) {
                 const err = await res.json();
-                throw new Error(err.error ?? 'Failed to fetch');
+                throw new Error(err?.error?.message ?? err?.error ?? 'Failed to fetch');
             }
-            const data: StockData = await res.json();
+            const raw = await res.json();
+            const payload = raw?.data ?? raw;
+            const data: StockData = {
+                symbol: typeof payload?.symbol === 'string' ? payload.symbol : SYMBOL,
+                name: typeof payload?.name === 'string' ? payload.name : SYMBOL,
+                price: Number(payload?.price),
+                change: Number(payload?.change),
+                changePercent: Number(payload?.changePercent),
+                high: Number(payload?.high),
+                low: Number(payload?.low),
+            };
+
+            if (!Number.isFinite(data.price) || !Number.isFinite(data.change) || !Number.isFinite(data.changePercent)) {
+                throw new Error('Invalid stock response payload');
+            }
+
             setStock(data);
             setError(null);
             setLastUpdated(new Date());

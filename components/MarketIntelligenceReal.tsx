@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Newspaper, ArrowUpRight, ArrowDownRight, Activity, Clock,
          Wifi, WifiOff, Zap, Radio, TrendingUp, TrendingDown, ExternalLink } from 'lucide-react';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useAuth } from '@/lib/authContext';
 
 type Sentiment = 'positive' | 'negative' | 'neutral';
 
@@ -289,7 +290,11 @@ const MarketIntelligenceReal = () => {
     const [sentimentFilter, setSentimentFilter] = useState<Sentiment | 'all'>('all');
     const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
     const [showDeepAnalysis, setShowDeepAnalysis] = useState(false);
-    const { isConnected, lastMessage } = useWebSocket('/ws');
+    const { user } = useAuth();
+    const { isConnected, lastMessage } = useWebSocket('/ws', {
+        token: user?.token ?? null,
+        enabled: Boolean(user?.token),
+    });
     const [newsFeed, setNewsFeed] = useState<NewsItem[]>(initialNews);
 
     useEffect(() => {

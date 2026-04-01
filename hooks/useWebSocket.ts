@@ -16,10 +16,17 @@ interface UseWebSocketReturn {
   connectionError: string | null;
 }
 
-export function useWebSocket(url: string): UseWebSocketReturn {
+interface UseWebSocketOptions {
+  token?: string | null;
+  enabled?: boolean;
+}
+
+export function useWebSocket(url: string | null, options?: UseWebSocketOptions): UseWebSocketReturn {
   const [isConnected, setIsConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const token = options?.token ?? null;
+  const enabled = options?.enabled ?? true;
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const reconnectAttemptsRef = useRef(0);
@@ -29,6 +36,8 @@ export function useWebSocket(url: string): UseWebSocketReturn {
 
   const resolveWebSocketUrl = useCallback(() => {
     if (typeof window === 'undefined') return null;
+
+    if (!url) return null;
 
     if (url.startsWith('ws://') || url.startsWith('wss://')) {
       return url;
@@ -44,7 +53,12 @@ export function useWebSocket(url: string): UseWebSocketReturn {
       const resolvedUrl = resolveWebSocketUrl();
       if (!resolvedUrl) return;
 
-      const ws = new WebSocket(resolvedUrl);
+      const safeToken = token?.trim();
+      const finalUrl = safeToken
+        ? `${resolvedUrl}${resolvedUrl.includes('?') ? '&' : '?'}token=${encodeURIComponent(safeToken)}`
+        : resolvedUrl;
+
+      const ws = new WebSocket(finalUrl);
       didOpenRef.current = false;
 
       ws.onopen = () => {
@@ -111,9 +125,13 @@ export function useWebSocket(url: string): UseWebSocketReturn {
       console.error('Failed to create WebSocket connection:', error);
       setConnectionError('Failed to connect to WebSocket server');
     }
-  }, [resolveWebSocketUrl]);
+  }, [resolveWebSocketUrl, token]);
 
   useEffect(() => {
+    if (enabled === false || !url) {
+      return;
+    }
+
     connectRef.current = connect;
     shouldReconnectRef.current = true;
     connectRef.current();
@@ -139,7 +157,7 @@ export function useWebSocket(url: string): UseWebSocketReturn {
         }
       }
     };
-  }, [connect]);
+  }, [connect, enabled, url]);
 
   const sendMessage = useCallback((message: unknown) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {

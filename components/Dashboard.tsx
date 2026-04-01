@@ -426,7 +426,22 @@ const Dashboard = () => {
             const res = await fetch('/api/stock?symbol=TSLA');
             if (!res.ok) throw new Error('fetch');
             const d = await res.json();
-            setTsla({ price: d.price, change: d.change, changePercent: d.changePercent, loading: false, error: false });
+            const payload = d?.data ?? d;
+            const price = Number(payload?.price);
+            const change = Number(payload?.change);
+            const changePercent = Number(payload?.changePercent);
+
+            if (!Number.isFinite(price) || !Number.isFinite(change) || !Number.isFinite(changePercent)) {
+                throw new Error('invalid stock payload');
+            }
+
+            setTsla({
+                price,
+                change,
+                changePercent,
+                loading: false,
+                error: false,
+            });
         } catch {
             setTsla(prev => ({ ...prev, loading: false, error: true }));
         }
