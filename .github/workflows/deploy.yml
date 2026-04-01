@@ -86,6 +86,7 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
+      VERCEL_PROJECT_NAME: ${{ github.event.repository.name }}
     
     steps:
       - uses: actions/checkout@v4
@@ -134,17 +135,36 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          if vercel pull --yes --environment=production --token="$VERCEL_TOKEN"; then
+            echo "USE_SCOPE_ARGS=false" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          echo "ID-based pull failed. Falling back to scope/project link mode..."
+          unset VERCEL_ORG_ID
+          unset VERCEL_PROJECT_ID
+
+          vercel link --yes --project="$VERCEL_PROJECT_NAME" --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
+          vercel pull --yes --environment=production --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
+          echo "USE_SCOPE_ARGS=true" >> "$GITHUB_ENV"
 
       - name: Build with Vercel
         shell: bash
         run: |
           set -euo pipefail
-          vercel build --prod --yes --token="$VERCEL_TOKEN"
+          if [ "${USE_SCOPE_ARGS:-false}" = "true" ]; then
+            vercel build --prod --yes --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
+          else
+            vercel build --prod --yes --token="$VERCEL_TOKEN"
+          fi
 
       - name: Deploy to Vercel
         shell: bash
         run: |
           set -euo pipefail
-          vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN"
+          if [ "${USE_SCOPE_ARGS:-false}" = "true" ]; then
+            vercel deploy --prebuilt --prod --yes --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
+          else
+            vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN"
+          fi
       
