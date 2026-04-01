@@ -72,7 +72,7 @@ jobs:
             ghcr.io/${{ steps.repo.outputs.owner_lc }}/finmindai:latest
             ghcr.io/${{ steps.repo.outputs.owner_lc }}/finmindai:${{ steps.version.outputs.VERSION }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Avoid failing the workflow on intermittent GitHub Cache 5xx export errors.
 
   deploy:
     runs-on: ubuntu-latest
