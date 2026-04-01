@@ -145,15 +145,17 @@ jobs:
           unset VERCEL_PROJECT_ID
 
           vercel link --yes --project="$VERCEL_PROJECT_NAME" --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
-          vercel pull --yes --environment=production --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
+          env -u VERCEL_ORG_ID -u VERCEL_PROJECT_ID vercel pull --yes --environment=production --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
           echo "USE_SCOPE_ARGS=true" >> "$GITHUB_ENV"
+          echo "VERCEL_ORG_ID=" >> "$GITHUB_ENV"
+          echo "VERCEL_PROJECT_ID=" >> "$GITHUB_ENV"
 
       - name: Build with Vercel
         shell: bash
         run: |
           set -euo pipefail
           if [ "${USE_SCOPE_ARGS:-false}" = "true" ]; then
-            vercel build --prod --yes --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
+            env -u VERCEL_ORG_ID -u VERCEL_PROJECT_ID vercel build --prod --yes --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
           else
             vercel build --prod --yes --token="$VERCEL_TOKEN"
           fi
@@ -163,7 +165,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ "${USE_SCOPE_ARGS:-false}" = "true" ]; then
-            vercel deploy --prebuilt --prod --yes --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
+            env -u VERCEL_ORG_ID -u VERCEL_PROJECT_ID vercel deploy --prebuilt --prod --yes --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
           else
             vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN"
           fi
