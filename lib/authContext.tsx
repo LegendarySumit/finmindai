@@ -132,6 +132,18 @@ const sanitizeTrackedPath = (pathname: string, search: string, hash: string) => 
   }
 };
 
+const getSanitizedPathname = (pathname: string) => {
+  try {
+    if (typeof window === 'undefined') {
+      return pathname;
+    }
+
+    return new URL(pathname, window.location.origin).pathname;
+  } catch {
+    return pathname;
+  }
+};
+
 const sanitizeTrackedReferrer = (referrer: string) => {
   if (!referrer) {
     return null;
@@ -246,7 +258,7 @@ const getActivityContext = () => {
   );
 
   return {
-    path: window.location.pathname,
+    path: getSanitizedPathname(window.location.pathname),
     fullPath,
     referrer: sanitizeTrackedReferrer(document.referrer),
     sessionId: getActivitySessionId(),

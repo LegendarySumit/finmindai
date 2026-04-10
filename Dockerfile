@@ -3,8 +3,8 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Pull latest security patches from Alpine and npm (reduces base image CVEs)
-RUN apk upgrade --no-cache && npm install -g npm@latest
+# Pull latest security patches from Alpine packages
+RUN apk upgrade --no-cache
 
 # Copy package files
 COPY package.json package-lock.json ./
@@ -24,13 +24,13 @@ FROM node:22-alpine
 WORKDIR /app
 
 # Install dumb-init for proper signal handling
-RUN apk upgrade --no-cache && apk add --no-cache dumb-init && npm install -g npm@latest
+RUN apk upgrade --no-cache && apk add --no-cache dumb-init
 
 # Copy package files
 COPY package.json package-lock.json ./
 
 # Install production dependencies only
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 # Copy built application from builder
 COPY --from=builder /app/.next ./.next
