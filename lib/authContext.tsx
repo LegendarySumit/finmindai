@@ -161,6 +161,21 @@ const sanitizeTrackedReferrer = (referrer: string) => {
   }
 };
 
+const sanitizeNavigatorString = (value: string | undefined): string | null => {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const sanitized = value
+      .replace(/[^\w\s.-]/g, '')
+      .slice(0, 256);
+    return sanitized || null;
+  } catch {
+    return null;
+  }
+};
+
 const sanitizeActivityValue = (value: unknown): ActivityMetadataValue | undefined => {
   if (value === null) {
     return null;
@@ -262,8 +277,8 @@ const getActivityContext = () => {
     fullPath,
     referrer: sanitizeTrackedReferrer(document.referrer),
     sessionId: getActivitySessionId(),
-    language: navigator.language || null,
-    userAgent: navigator.userAgent || null,
+    language: sanitizeNavigatorString(navigator.language),
+    userAgent: sanitizeNavigatorString(navigator.userAgent),
     viewport: {
       width: window.innerWidth,
       height: window.innerHeight,
