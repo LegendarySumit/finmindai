@@ -86,7 +86,7 @@ FinMindAI is designed to grow into a complete advisory ecosystem with portfolio 
 | GitHub Actions | Test, security, build, and deploy automation |
 | Docker + Buildx | Containerized build and image publish flow |
 | GHCR | Container image registry |
-| Vercel CLI | Production deployment orchestration |
+| Render Web Service | Production deployment orchestration |
 
 ---
 
@@ -180,12 +180,7 @@ FIREBASE_SERVICE_ACCOUNT_BASE64=
 Production deployment secrets (GitHub Actions):
 
 ```env
-VERCEL_TOKEN=
-VERCEL_ORG_ID=
-VERCEL_PROJECT_ID=
-VERCEL_SCOPE=
-DOCKER_USERNAME=
-DOCKER_PASSWORD=
+RENDER_DEPLOY_HOOK_URL=
 ```
 
 ### Firebase Setup Checklist
@@ -270,7 +265,7 @@ curl -X POST http://localhost:3000/api/auth/wallet-nonce \
 
 1. `test.yml` runs lint, type checks, tests, and build verification.
 2. `security.yml` runs dependency audit, secret scan, SAST, container scan, and SARIF upload.
-3. `deploy.yml` runs Trivy scan, Docker build/publish path, and Vercel deployment with fallback-safe linking.
+3. `deploy.yml` runs Trivy scan, Docker build/publish path, and triggers a Render deploy hook.
 
 ### Docker Deployment
 
@@ -357,7 +352,7 @@ docker run -p 3000:3000 --env-file .env.local finmindai:latest
 | Wallet login fails | Missing FIREBASE_SERVICE_ACCOUNT_BASE64 | Add encoded service account JSON |
 | Realtime feed not updating | WebSocket disconnected | Ensure npm run dev starts custom server.js |
 | Port conflict on 3000 | Another process using port | Stop conflicting process or reconfigure port |
-| Vercel pull fails in CI | Scope/ID mismatch | Set `VERCEL_SCOPE`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` correctly |
+| Render deploy not triggered in CI | Missing or invalid deploy hook | Set `RENDER_DEPLOY_HOOK_URL` in GitHub secrets |
 
 ---
 
@@ -384,7 +379,7 @@ This project is licensed under the MIT License. See `LICENSE` for full text.
 
 - GitHub: [@LegendarySumit](https://github.com/LegendarySumit)
 - Project: [finmindai](https://github.com/LegendarySumit/finmindai)
-- Live Demo: [finmindai demo]([https://legendarysumit.github.io/finmindai/](https://finmindai.up.railway.app/)) (if deployed)
+- Live Demo: [finmindai demo](https://finmindai.onrender.com/) (if deployed)
 
 ---
 

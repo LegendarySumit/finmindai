@@ -1,7 +1,10 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
+
+# Pull latest security patches from Alpine and npm (reduces base image CVEs)
+RUN apk upgrade --no-cache && npm install -g npm@latest
 
 # Copy package files
 COPY package.json package-lock.json ./
@@ -16,12 +19,12 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
 # Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+RUN apk upgrade --no-cache && apk add --no-cache dumb-init && npm install -g npm@latest
 
 # Copy package files
 COPY package.json package-lock.json ./

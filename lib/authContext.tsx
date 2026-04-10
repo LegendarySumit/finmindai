@@ -108,6 +108,47 @@ const mapAuthErrorMessage = (err: unknown, fallback: string) => {
 
 const ACTIVITY_SESSION_STORAGE_KEY = 'finmindai:activity-session-id';
 
+const buildSecureSessionSuffix = () => {
+  if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+    const bytes = new Uint8Array(8);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  // Fallback keeps deterministic uniqueness when secure APIs are unavailable.
+  return `${Date.now().toString(16)}-${performance.now().toString(16).replace('.', '')}`;
+};
+
+const sanitizeTrackedPath = (pathname: string, search: string, hash: string) => {
+  try {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    const normalizedUrl = new URL(`${pathname}${search}${hash}`, window.location.origin);
+    return `${normalizedUrl.pathname}${normalizedUrl.search}`.slice(0, 1024);
+  } catch {
+    return null;
+  }
+};
+
+const sanitizeTrackedReferrer = (referrer: string) => {
+  if (!referrer) {
+    return null;
+  }
+
+  try {
+    const normalizedUrl = new URL(referrer);
+    if (normalizedUrl.protocol !== 'https:' && normalizedUrl.protocol !== 'http:') {
+      return null;
+    }
+
+    return `${normalizedUrl.origin}${normalizedUrl.pathname}${normalizedUrl.search}`.slice(0, 1024);
+  } catch {
+    return null;
+  }
+};
+
 const sanitizeActivityValue = (value: unknown): ActivityMetadataValue | undefined => {
   if (value === null) {
     return null;
@@ -175,12 +216,12 @@ const getActivitySessionId = () => {
     const generatedSessionId =
       typeof window.crypto?.randomUUID === 'function'
         ? window.crypto.randomUUID()
-        : `session-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        : `session-${Date.now()}-${buildSecureSessionSuffix()}`;
 
     window.sessionStorage.setItem(ACTIVITY_SESSION_STORAGE_KEY, generatedSessionId);
     return generatedSessionId;
   } catch {
-    return `session-${Date.now()}`;
+    return `session-${Date.now()}-${buildSecureSessionSuffix()}`;
   }
 };
 
@@ -198,10 +239,16 @@ const getActivityContext = () => {
     };
   }
 
+  const fullPath = sanitizeTrackedPath(
+    window.location.pathname,
+    window.location.search,
+    window.location.hash
+  );
+
   return {
     path: window.location.pathname,
-    fullPath: `${window.location.pathname}${window.location.search}${window.location.hash}`,
-    referrer: document.referrer || null,
+    fullPath,
+    referrer: sanitizeTrackedReferrer(document.referrer),
     sessionId: getActivitySessionId(),
     language: navigator.language || null,
     userAgent: navigator.userAgent || null,

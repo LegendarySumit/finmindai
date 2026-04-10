@@ -80,93 +80,27 @@ jobs:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     permissions:
       contents: read
-      deployments: write
     env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
-      VERCEL_PROJECT_NAME: ${{ github.event.repository.name }}
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
     
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
-      - name: Prepare Vercel context
+      - name: Validate Render deploy hook configuration
         shell: bash
         run: |
           set -euo pipefail
-          VERCEL_TOKEN_CLEAN="$(printf %s "$VERCEL_TOKEN" | tr -d '\r\n')"
-          VERCEL_ORG_ID_CLEAN="$(printf %s "$VERCEL_ORG_ID" | tr -d '\r\n')"
-          VERCEL_PROJECT_ID_CLEAN="$(printf %s "$VERCEL_PROJECT_ID" | tr -d '\r\n')"
-          VERCEL_SCOPE_CLEAN="$(printf %s "${VERCEL_SCOPE:-}" | tr -d '\r\n')"
-
-          if [ -z "$VERCEL_SCOPE_CLEAN" ]; then
-            VERCEL_SCOPE_CLEAN="${GITHUB_REPOSITORY_OWNER,,}"
-          fi
-
-          if [ -z "$VERCEL_ORG_ID_CLEAN" ] || [ -z "$VERCEL_PROJECT_ID_CLEAN" ]; then
-            echo "VERCEL_ORG_ID and VERCEL_PROJECT_ID must both be set in GitHub secrets."
+          if [ -z "${RENDER_DEPLOY_HOOK_URL:-}" ]; then
+            echo "Missing GitHub secret: RENDER_DEPLOY_HOOK_URL"
             exit 1
           fi
 
-          echo "VERCEL_TOKEN=$VERCEL_TOKEN_CLEAN" >> "$GITHUB_ENV"
-          echo "VERCEL_ORG_ID=$VERCEL_ORG_ID_CLEAN" >> "$GITHUB_ENV"
-          echo "VERCEL_PROJECT_ID=$VERCEL_PROJECT_ID_CLEAN" >> "$GITHUB_ENV"
-          echo "VERCEL_SCOPE=$VERCEL_SCOPE_CLEAN" >> "$GITHUB_ENV"
-
-          vercel whoami --token="$VERCEL_TOKEN_CLEAN"
-
-      - name: Reset Vercel project link state
-        run: rm -rf .vercel
-      
-      - name: Pull Vercel environment
+      - name: Trigger Render deploy
         shell: bash
         run: |
           set -euo pipefail
-          if vercel pull --yes --environment=production --token="$VERCEL_TOKEN"; then
-            echo "USE_SCOPE_ARGS=false" >> "$GITHUB_ENV"
-            exit 0
-          fi
+          curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK_URL"
 
-          echo "ID-based pull failed. Falling back to scope/project link mode..."
-          unset VERCEL_ORG_ID
-          unset VERCEL_PROJECT_ID
-
-          vercel link --yes --project="$VERCEL_PROJECT_NAME" --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
-          env -u VERCEL_ORG_ID -u VERCEL_PROJECT_ID vercel pull --yes --environment=production --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
-          echo "USE_SCOPE_ARGS=true" >> "$GITHUB_ENV"
-          echo "VERCEL_ORG_ID=" >> "$GITHUB_ENV"
-          echo "VERCEL_PROJECT_ID=" >> "$GITHUB_ENV"
-
-      - name: Build with Vercel
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ "${USE_SCOPE_ARGS:-false}" = "true" ]; then
-            env -u VERCEL_ORG_ID -u VERCEL_PROJECT_ID vercel build --prod --yes --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
-          else
-            vercel build --prod --yes --token="$VERCEL_TOKEN"
-          fi
-
-      - name: Deploy to Vercel
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ "${USE_SCOPE_ARGS:-false}" = "true" ]; then
-            env -u VERCEL_ORG_ID -u VERCEL_PROJECT_ID vercel deploy --prebuilt --prod --yes --scope="$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
-          else
-            vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN"
-          fi
+      - name: Deployment queued on Render
+        run: echo "Render deploy hook triggered successfully."
       
