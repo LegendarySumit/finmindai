@@ -299,8 +299,10 @@ const deriveAuthType = (firebaseUser: FirebaseUser, profileAuthType?: string): U
     return 'wallet';
   }
 
-  const providerIds = firebaseUser.providerData.map((provider) => provider.providerId);
-  if (providerIds.includes('google.com')) {
+  const hasGoogleProvider = firebaseUser.providerData.some(
+    (provider) => provider.providerId === GoogleAuthProvider.PROVIDER_ID
+  );
+  if (hasGoogleProvider) {
     return 'google';
   }
 
