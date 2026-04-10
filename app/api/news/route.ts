@@ -2,8 +2,6 @@ import { NextRequest } from 'next/server';
 import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rateLimit';
 import { errorResponse, successResponse } from '@/lib/apiResponse';
 
-const FINNHUB_KEY = process.env.FINNHUB_API_KEY;
-
 type Sentiment = 'positive' | 'negative' | 'neutral';
 
 interface FinnhubNewsItem {
@@ -56,17 +54,32 @@ export async function GET(req: NextRequest) {
         });
     }
 
-    if (!FINNHUB_KEY) {
-        return errorResponse('CONFIG_ERROR', 'FINNHUB_API_KEY not configured', { status: 500 });
+    const apiKey = process.env.FINNHUB_API_KEY?.trim();
+    if (!apiKey || apiKey === 'your_finnhub_api_key') {
+        return errorResponse('CONFIG_ERROR', 'FINNHUB_API_KEY not configured or invalid', { status: 500 });
     }
 
     try {
+        const params = new URLSearchParams({
+            category: 'general',
+            token: apiKey,
+        });
+
         const res = await fetch(
-            `https://finnhub.io/api/v1/news?category=general&token=${FINNHUB_KEY}`,
-            { next: { revalidate: 90 } }
+            `https://finnhub.io/api/v1/news?${params.toString()}`,
+            {
+                next: { revalidate: 90 },
+                signal: AbortSignal.timeout(8000),
+            }
         );
 
-        if (!res.ok) throw new Error(`Finnhub ${res.status}`);
+        if (!res.ok) {
+            const body = await res.text().catch(() => '');
+            return errorResponse('UPSTREAM_ERROR', `Finnhub request failed (${res.status})`, {
+                status: 502,
+                details: body ? body.slice(0, 400) : undefined,
+            });
+        }
 
         const raw = (await res.json()) as FinnhubNewsItem[];
 
@@ -97,7 +110,8 @@ export async function GET(req: NextRequest) {
             });
 
         return successResponse({ items, lastUpdated: Date.now() }, { message: 'News feed fetched successfully' });
-    } catch {
-        return errorResponse('UPSTREAM_ERROR', 'Failed to fetch news feed', { status: 502 });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to fetch news feed';
+        return errorResponse('UPSTREAM_ERROR', message, { status: 502 });
     }
 }
