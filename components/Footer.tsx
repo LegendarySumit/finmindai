@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 const Footer = () => {
     return (
-        <footer className="bg-finance-darker border-t border-finance-border pt-10 sm:pt-14 md:pt-18 lg:pt-20 pb-6 sm:pb-8 md:pb-10">
+        <footer className="bg-finance-darker pt-10 sm:pt-14 md:pt-18 lg:pt-20 pb-6 sm:pb-8 md:pb-10">
             <div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 lg:gap-8 mb-8 sm:mb-10 md:mb-12 lg:mb-16">
                     {/* Brand Section */}

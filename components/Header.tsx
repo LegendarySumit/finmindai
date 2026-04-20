@@ -90,7 +90,7 @@ const Header = () => {
     };
 
     return (
-        <header className="fixed w-full z-50 bg-finance-dark/95 backdrop-blur-md border-b border-finance-border shadow-lg">
+        <header className="fixed w-full z-50 bg-finance-dark/95 backdrop-blur-md shadow-lg">
             <div className="w-full px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8">
                 <div className="flex justify-between items-center h-12 sm:h-14 md:h-16">
                     {/* Logo */}

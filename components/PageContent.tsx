@@ -66,23 +66,17 @@ const PageContent = () => {
                 </>
             ) : activeSection === 'war-room' ? (
                 <>
-                    <div className="pt-14 sm:pt-16 md:pt-20 lg:pt-24">
-                        <StockPlayground />
-                    </div>
+                    <StockPlayground />
                     <Footer />
                 </>
             ) : activeSection === 'learning-hub' ? (
                 <>
-                    <div className="pt-14 sm:pt-16 md:pt-20 lg:pt-24">
-                        <LearningHub />
-                    </div>
+                    <LearningHub />
                     <Footer />
                 </>
             ) : activeSection === 'community' ? (
                 <>
-                    <div className="pt-14 sm:pt-16 md:pt-20 lg:pt-24">
-                        <Community />
-                    </div>
+                    <Community />
                     <Footer/>
                 </>
             ) : (

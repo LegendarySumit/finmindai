@@ -103,7 +103,7 @@ const WarRoomPreview = () => {
     ];
 
     return (
-        <section id="playground" className="relative py-10 sm:py-14 md:py-20 lg:py-24 overflow-hidden bg-finance-darker px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8">
+        <section id="playground" className="min-h-screen relative pt-12 sm:pt-14 md:pt-16 pb-10 sm:pb-14 md:pb-20 lg:pb-24 overflow-hidden bg-finance-darker px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8">
             {/* Background */}
             <div className="absolute inset-0 pointer-events-none">
                 <div
@@ -130,7 +130,7 @@ const WarRoomPreview = () => {
 
             <div className="max-w-7xl mx-auto relative">
                 {/* Header */}
-                <div className="text-center mb-10 sm:mb-12 md:mb-14 lg:mb-16">
+                <div className="text-center pt-6 sm:pt-8 md:pt-10 mb-10 sm:mb-12 md:mb-14 lg:mb-16">
                     <motion.div
                         initial={{ opacity: 0, y: 12 }}
                         whileInView={{ opacity: 1, y: 0 }}

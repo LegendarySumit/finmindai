@@ -26,16 +26,16 @@ export async function POST(req: NextRequest) {
 
     // Validate request
     const body = await req.json();
-    const validated = await validateRequest<z.infer<typeof walletVerifySchema>>(walletVerifySchema, {
-      walletAddress: body.address || body.walletAddress,
-      signature: body.signature,
-      message: body.message,
-    });
-    const address = validated.walletAddress;
-    const signature = validated.signature;
-
-    if (!address || !signature || !isAddress(address)) {
-      return errorResponse('INVALID_PAYLOAD', 'Valid address and signature are required', { status: 400 });
+    
+    const address = body.address || body.walletAddress;
+    const signature = body.signature;
+    
+    if (!address || !isAddress(address)) {
+      return errorResponse('INVALID_ADDRESS', 'Valid wallet address is required', { status: 400 });
+    }
+    
+    if (!signature || typeof signature !== 'string') {
+      return errorResponse('INVALID_SIGNATURE', 'Valid signature is required', { status: 400 });
     }
 
     const normalizedAddress = address.toLowerCase();
