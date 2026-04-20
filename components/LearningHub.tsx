@@ -214,7 +214,7 @@ const LearningHub = () => {
     );
 
     return (
-        <section className="min-h-screen bg-[#070d1a] relative overflow-hidden py-10 sm:py-14 md:py-20 lg:py-24 px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8">
+        <section className="min-h-screen bg-finance-darker relative overflow-hidden pt-12 sm:pt-14 md:pt-16 pb-10 sm:pb-14 md:pb-20 lg:pb-24 px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8">
             {/* bg glows */}
             <div className="pointer-events-none absolute top-0 left-1/4 w-[600px] h-[400px] rounded-full blur-3xl opacity-20" style={{ background: 'radial-gradient(circle, #3b82f6 0%, transparent 70%)' }} />
             <div className="pointer-events-none absolute bottom-0 right-1/4 w-[500px] h-[400px] rounded-full blur-3xl opacity-15" style={{ background: 'radial-gradient(circle, #8b5cf6 0%, transparent 70%)' }} />
@@ -222,7 +222,7 @@ const LearningHub = () => {
             <div className="w-full max-w-7xl mx-auto relative">
 
                 {/* ── Hero ── */}
-                <motion.div variants={stagger} initial="hidden" animate="show" className="text-center mb-10 sm:mb-12 md:mb-14 lg:mb-16">
+                <motion.div variants={stagger} initial="hidden" animate="show" className="text-center pt-6 sm:pt-8 md:pt-10 mb-10 sm:mb-12 md:mb-14 lg:mb-16">
                     <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6">
                         <GraduationCap size={14} className="text-blue-400" />
                         <span className="text-[11px] font-black text-blue-400 uppercase tracking-widest">FinMind Learning Hub</span>

@@ -149,7 +149,7 @@ const Features = () => {
     };
 
     return (
-        <section id="features" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-finance-dark relative overflow-hidden">
+        <section id="features" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-finance-darker relative overflow-hidden">
             {/* Background */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                 style={{ backgroundImage: 'linear-gradient(rgba(251,191,36,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(251,191,36,0.8) 1px, transparent 1px)', backgroundSize: '72px 72px' }}

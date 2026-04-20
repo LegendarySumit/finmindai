@@ -112,7 +112,7 @@ const SkeletonCard = ({ i }: { i: number }) => (
 );
 
 const NewsIntelligenceDashboard = () => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const [newsFeed, setNewsFeed] = useState<NewsItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isPaused, setIsPaused] = useState(false);
@@ -193,6 +193,11 @@ const NewsIntelligenceDashboard = () => {
             return;
         }
 
+        if (!user?.token) {
+            setAnalysisError('Authentication token not available. Please sign in again.');
+            return;
+        }
+
         const targetNews = selectedNews;
         setAnalysisError(null);
         setAnalysisLoadingId(targetNews.id);
@@ -200,7 +205,10 @@ const NewsIntelligenceDashboard = () => {
         try {
             const res = await fetch('/api/news/deep-analysis', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
                 body: JSON.stringify({
                     news: {
                         id: targetNews.id,
@@ -242,7 +250,7 @@ const NewsIntelligenceDashboard = () => {
         } finally {
             setAnalysisLoadingId(null);
         }
-    }, [selectedNews, newsFeed, isAuthenticated]);
+    }, [selectedNews, newsFeed, isAuthenticated, user]);
 
     const sentimentStats = useMemo(() => {
         const s = { positive: 0, negative: 0, neutral: 0 };

@@ -258,7 +258,7 @@ const StockPlayground = () => {
     };
 
     return (
-        <section className="min-h-screen bg-[#070d1a] relative overflow-hidden py-10 sm:py-14 md:py-20 lg:py-24 px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8">
+        <section className="min-h-screen bg-finance-darker relative overflow-hidden pt-12 sm:pt-14 md:pt-16 pb-10 sm:pb-14 md:pb-20 lg:pb-24 px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8">
             <div className="pointer-events-none absolute top-0 right-0 w-96 sm:w-150 h-72 sm:h-125 rounded-full blur-3xl opacity-20"
                 style={{ background: 'radial-gradient(circle, #fbbf24 0%, transparent 65%)' }} />
             <div className="pointer-events-none absolute bottom-0 left-0 w-80 sm:w-125 h-64 sm:h-100 rounded-full blur-3xl opacity-10"
@@ -267,7 +267,7 @@ const StockPlayground = () => {
             <div className="w-full max-w-7xl mx-auto relative">
 
                 {/* ── Hero ── */}
-                <motion.div variants={stagger} initial="hidden" animate="show" className="text-center mb-8">
+                <motion.div variants={stagger} initial="hidden" animate="show" className="text-center pt-6 sm:pt-8 md:pt-10 mb-8">
                     <motion.div variants={fadeUp}
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 mb-5">
                         <Radio size={12} className="text-red-400 animate-pulse" />

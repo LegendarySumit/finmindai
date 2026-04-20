@@ -591,9 +591,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       const credential = await signInWithCustomToken(auth, verifyData.customToken);
-      await upsertUserProfileSafely(credential.user, 'wallet', address.toLowerCase());
-      await trackActivityByUidSafely(credential.user.uid, 'wallet', 'auth_wallet_login', {
+      
+      // Fire-and-forget: Update profile and track activity in background
+      // Don't await these - let user redirect immediately
+      upsertUserProfileSafely(credential.user, 'wallet', address.toLowerCase()).catch((err) => {
+        console.error('Failed to update user profile:', err);
+      });
+      
+      trackActivityByUidSafely(credential.user.uid, 'wallet', 'auth_wallet_login', {
         walletAddress: address.toLowerCase(),
+      }).catch((err) => {
+        console.error('Failed to track activity:', err);
       });
 
     } catch (err) {
@@ -624,9 +632,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error('This account is not registered. Please sign up first.');
       }
 
-      await upsertUserProfileSafely(credential.user, 'email');
-      await trackActivityByUidSafely(credential.user.uid, 'email', 'auth_email_login', {
+      // Fire-and-forget: Update profile and track activity in background
+      upsertUserProfileSafely(credential.user, 'email').catch((err) => {
+        console.error('Failed to update user profile:', err);
+      });
+      
+      trackActivityByUidSafely(credential.user.uid, 'email', 'auth_email_login', {
         email: credential.user.email || email,
+      }).catch((err) => {
+        console.error('Failed to track activity:', err);
       });
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Email login failed';
@@ -649,9 +663,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       const credential = await createUserWithEmailAndPassword(auth, email, password);
-      await upsertUserProfileSafely(credential.user, 'email');
-      await trackActivityByUidSafely(credential.user.uid, 'email', 'auth_email_signup', {
+      
+      // Fire-and-forget: Update profile and track activity in background
+      upsertUserProfileSafely(credential.user, 'email').catch((err) => {
+        console.error('Failed to update user profile:', err);
+      });
+      
+      trackActivityByUidSafely(credential.user.uid, 'email', 'auth_email_signup', {
         email: credential.user.email || email,
+      }).catch((err) => {
+        console.error('Failed to track activity:', err);
       });
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Signup failed';
@@ -693,10 +714,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error('This Google account is not registered. Please sign up first.');
       }
 
-      await upsertUserProfileSafely(credential.user, 'google');
-      await trackActivityByUidSafely(credential.user.uid, 'google', 'auth_google_login', {
+      // Fire-and-forget: Update profile and track activity in background
+      upsertUserProfileSafely(credential.user, 'google').catch((err) => {
+        console.error('Failed to update user profile:', err);
+      });
+      
+      trackActivityByUidSafely(credential.user.uid, 'google', 'auth_google_login', {
         email: credential.user.email || null,
         method: 'popup',
+      }).catch((err) => {
+        console.error('Failed to track activity:', err);
       });
     } catch (err) {
       const errorMsg = mapAuthErrorMessage(err, 'Google sign-in failed');
@@ -715,13 +742,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const credential = await openGooglePopup();
       const userInfo = getAdditionalUserInfo(credential);
 
-      await upsertUserProfileSafely(credential.user, 'google');
-      await trackActivityByUidSafely(
+      // Fire-and-forget: Update profile and track activity in background
+      upsertUserProfileSafely(credential.user, 'google').catch((err) => {
+        console.error('Failed to update user profile:', err);
+      });
+      
+      trackActivityByUidSafely(
         credential.user.uid,
         'google',
         userInfo?.isNewUser ? 'auth_google_signup' : 'auth_google_signup_existing_user',
         { email: credential.user.email || null, method: 'popup' }
-      );
+      ).catch((err) => {
+        console.error('Failed to track activity:', err);
+      });
     } catch (err) {
       const errorMsg = mapAuthErrorMessage(err, 'Google sign-up failed');
       setError(errorMsg);

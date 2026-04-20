@@ -18,7 +18,7 @@ const TICKERS = [
 
 const Hero = () => {
     return (
-        <section className="min-h-screen flex items-center justify-center bg-finance-darker relative overflow-hidden pt-12 sm:pt-16 md:pt-20">
+        <section className="min-h-screen flex items-center justify-center bg-finance-darker relative overflow-hidden">
             {/* Animated grid */}
             <div
                 className="absolute inset-0 opacity-[0.04] pointer-events-none"
@@ -46,7 +46,7 @@ const Hero = () => {
             />
 
             {/* Live scrolling ticker */}
-            <div className="absolute top-12 sm:top-14 md:top-20 left-0 right-0 overflow-hidden border-b border-finance-gold/10 bg-finance-darker/90 backdrop-blur-sm py-1.5 sm:py-2 z-10">
+            <div className="fixed top-12 sm:top-14 md:top-16 left-0 right-0 overflow-hidden backdrop-blur-sm py-1.5 sm:py-2 z-20 bg-finance-darker/80">
                 <motion.div
                     className="flex gap-6 sm:gap-10 whitespace-nowrap"
                     animate={{ x: ['0%', '-50%'] }}
@@ -66,7 +66,7 @@ const Hero = () => {
                 </motion.div>
             </div>
 
-            <div className="w-full px-3 sm:px-3 md:px-4 lg:px-6 xl:px-8 py-14 sm:py-20 md:py-24 lg:py-28 relative">
+            <div className="w-full px-3 sm:px-3 md:px-4 lg:px-6 xl:px-8 py-14 sm:py-20 md:py-24 lg:py-28 relative pt-12 sm:pt-16 md:pt-20">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 md:gap-10 lg:gap-12 items-center">
                         {/* Left Content */}
