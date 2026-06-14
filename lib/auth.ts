@@ -1,7 +1,6 @@
 import { adminAuth, adminDb } from "@/lib/firebaseAdmin";
-import type { NextApiRequest } from "next";
 
-export interface AuthenticatedRequest extends NextApiRequest {
+export interface AuthenticatedRequest {
   uid?: string;
   email?: string;
 }
@@ -22,7 +21,9 @@ type AuthRequestLike = {
 export async function verifyAuth(req: AuthRequestLike): Promise<string> {
   const authHeader =
     req.headers.authorization ??
-    (typeof req.headers.get === "function" ? req.headers.get("authorization") ?? undefined : undefined);
+    (typeof req.headers.get === "function"
+      ? (req.headers.get("authorization") ?? undefined)
+      : undefined);
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     throw new Error("Missing or invalid Authorization header");
@@ -36,7 +37,8 @@ export async function verifyAuth(req: AuthRequestLike): Promise<string> {
     req.email = decodedToken.email;
     return decodedToken.uid;
   } catch (error) {
-    const errMsg = error instanceof Error ? error.message : "Token verification failed";
+    const errMsg =
+      error instanceof Error ? error.message : "Token verification failed";
     throw new Error(`Unauthorized: ${errMsg}`);
   }
 }
@@ -60,8 +62,8 @@ export async function requireProfile(uid: string): Promise<boolean> {
   try {
     const userDoc = await adminDb().collection("users").doc(uid).get();
     return userDoc.exists;
-  } catch (error) {
-    console.error("Profile check error:", error);
+  } catch {
+    // Error checking profile - fail securely
     return false;
   }
 }
@@ -73,8 +75,8 @@ export async function getUserProfile(uid: string) {
   try {
     const userDoc = await adminDb().collection("users").doc(uid).get();
     return userDoc.exists ? userDoc.data() : null;
-  } catch (error) {
-    console.error("Error fetching user profile:", error);
+  } catch {
+    // Error fetching profile
     return null;
   }
 }

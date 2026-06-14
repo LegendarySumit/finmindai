@@ -19,7 +19,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 px-4">
+    <div className="flex h-screen flex-col items-center justify-center bg-linear-to-br from-slate-900 to-slate-800 px-4">
       <div className="max-w-2xl space-y-6 text-center">
         <div className="space-y-2">
           <h1 className="text-5xl font-bold text-white">Oops!</h1>

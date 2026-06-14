@@ -1,4 +1,3 @@
-import type { NextApiRequest } from "next";
 import type { NextRequest } from "next/server";
 
 interface RateLimitEntry {
@@ -20,7 +19,7 @@ const rateLimitStore = new Map<string, RateLimitEntry>();
 export function checkRateLimit(
   identifier: string,
   maxRequests: number = 100,
-  windowMs: number = 60 * 1000 // 1 minute default
+  windowMs: number = 60 * 1000, // 1 minute default
 ): {
   allowed: boolean;
   remaining: number;
@@ -61,7 +60,6 @@ export function checkRateLimit(
  * Get client IP from request
  */
 type RequestLike =
-  | NextApiRequest
   | NextRequest
   | {
       ip?: string | null;
@@ -100,25 +98,26 @@ export function getClientIP(req: RequestLike): string {
 export const RATE_LIMITS = {
   // Strict: auth endpoints (5 per minute)
   auth: { maxRequests: 5, windowMs: 60 * 1000 },
-
   // Standard: API endpoints (100 per minute)
   api: { maxRequests: 100, windowMs: 60 * 1000 },
-
   // Generous: read-only endpoints (500 per minute)
   read: { maxRequests: 500, windowMs: 60 * 1000 },
-
   // Expensive: AI analysis endpoints (10 per minute per user)
   expensive: { maxRequests: 10, windowMs: 60 * 1000 },
 };
 
 /**
  * Cleanup old entries periodically (every hour)
+ * Runs automatically on module load
  */
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitStore.entries()) {
-    if (now >= entry.resetTime) {
-      rateLimitStore.delete(key);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, entry] of rateLimitStore.entries()) {
+      if (now >= entry.resetTime) {
+        rateLimitStore.delete(key);
+      }
     }
-  }
-}, 60 * 60 * 1000); // 1 hour
+  },
+  60 * 60 * 1000,
+); // 1 hour

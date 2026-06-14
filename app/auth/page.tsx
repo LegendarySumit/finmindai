@@ -1,10 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Wallet, Mail, Lock, Eye, EyeOff, Loader, ArrowLeft, Rocket, Shield, Zap, TrendingUp, Chrome } from 'lucide-react';
-import { useAuth } from '@/lib/authContext';
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import {
+  Wallet,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Loader,
+  ArrowLeft,
+  Rocket,
+  Shield,
+  Zap,
+  TrendingUp,
+} from "lucide-react";
+import { useAuth } from "@/lib/authContext";
+import type React from "react";
 
 const getErrorMessage = (err: unknown, fallback: string) => {
   if (err instanceof Error && err.message) {
@@ -16,30 +29,43 @@ const getErrorMessage = (err: unknown, fallback: string) => {
 
 export default function AuthPage() {
   const router = useRouter();
-  const { loginWithEmail, signupWithEmail, loginWithWallet, loginWithGoogle, signupWithGoogle, isLoading, error, clearError, user } = useAuth();
-  const [tab, setTab] = useState<'wallet' | 'email'>('email');
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const {
+    loginWithEmail,
+    signupWithEmail,
+    loginWithWallet,
+    loginWithGoogle,
+    signupWithGoogle,
+    isLoading,
+    error,
+    clearError,
+    user,
+  } = useAuth();
+  const [tab, setTab] = useState<"wallet" | "email">("email");
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [localError, setLocalError] = useState('');
+  const [localError, setLocalError] = useState("");
   const isProcessingAuth = useRef(false);
   const stayOnAuthPageRef = useRef(false);
 
   useEffect(() => {
     // Only auto-redirect if we're not in the middle of an active sign-in flow.
     // This avoids redirect races between auth state updates and in-flight handlers.
-    if (user?.token && !isProcessingAuth.current && !stayOnAuthPageRef.current) {
-      router.push('/');
+    if (
+      user?.token &&
+      !isProcessingAuth.current &&
+      !stayOnAuthPageRef.current
+    ) {
+      router.push("/");
     }
   }, [user, router]);
 
-  useEffect(() => {
-    if (error) {
-      setLocalError(error);
-    }
-  }, [error]);
+  // Sync external error to local state when it changes
+  if (error && error !== localError) {
+    setLocalError(error);
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -62,36 +88,36 @@ export default function AuthPage() {
   };
 
   const handleWalletConnect = async () => {
-    setLocalError('');
+    setLocalError("");
     clearError();
     stayOnAuthPageRef.current = false;
     isProcessingAuth.current = true;
 
     try {
       await loginWithWallet();
-      router.push('/');
+      router.push("/");
     } catch (err: unknown) {
       stayOnAuthPageRef.current = true;
-      setLocalError(getErrorMessage(err, 'Wallet connection failed'));
+      setLocalError(getErrorMessage(err, "Wallet connection failed"));
     } finally {
       isProcessingAuth.current = false;
     }
   };
 
   const handleGoogleAuth = async () => {
-    setLocalError('');
+    setLocalError("");
     clearError();
-    setTab('email');
+    setTab("email");
     stayOnAuthPageRef.current = false;
     isProcessingAuth.current = true;
 
     try {
-      if (mode === 'signup') {
+      if (mode === "signup") {
         await signupWithGoogle();
       } else {
         await loginWithGoogle();
       }
-      router.push('/');
+      router.push("/");
     } catch (err: unknown) {
       stayOnAuthPageRef.current = true;
       setLocalError(getErrorMessage(err, `Google ${mode} failed`));
@@ -100,47 +126,47 @@ export default function AuthPage() {
     }
   };
 
-  const handleEmailAuth = async (e: React.FormEvent) => {
+  const handleEmailAuth = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLocalError('');
+    setLocalError("");
     clearError();
     stayOnAuthPageRef.current = false;
 
     if (!email || !password) {
-      setLocalError('Email and password are required');
+      setLocalError("Email and password are required");
       return;
     }
 
     isProcessingAuth.current = true;
 
-    if (mode === 'signup') {
+    if (mode === "signup") {
       if (password !== confirmPassword) {
         isProcessingAuth.current = false;
-        setLocalError('Passwords do not match');
+        setLocalError("Passwords do not match");
         return;
       }
-      if (password.length < 8) {
+      if (password.length < 12) {
         isProcessingAuth.current = false;
-        setLocalError('Password must be at least 8 characters');
+        setLocalError("Password must be at least 12 characters");
         return;
       }
 
       try {
         await signupWithEmail(email, password);
-        router.push('/');
+        router.push("/");
       } catch (err: unknown) {
         stayOnAuthPageRef.current = true;
-        setLocalError(getErrorMessage(err, 'Signup failed'));
+        setLocalError(getErrorMessage(err, "Signup failed"));
       } finally {
         isProcessingAuth.current = false;
       }
     } else {
       try {
         await loginWithEmail(email, password);
-        router.push('/');
+        router.push("/");
       } catch (err: unknown) {
         stayOnAuthPageRef.current = true;
-        setLocalError(getErrorMessage(err, 'Login failed'));
+        setLocalError(getErrorMessage(err, "Login failed"));
       } finally {
         isProcessingAuth.current = false;
       }
@@ -213,8 +239,11 @@ export default function AuthPage() {
               <div className="space-y-6 lg:space-y-8">
                 <div>
                   <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white mb-2 sm:mb-3 lg:mb-4 leading-tight">
-                    Welcome to<br />
-                    <span className="bg-linear-to-r from-amber-400 to-amber-500 bg-clip-text text-transparent">FinMind AI</span>
+                    Welcome to
+                    <br />
+                    <span className="bg-linear-to-r from-amber-400 to-amber-500 bg-clip-text text-transparent">
+                      FinMind AI
+                    </span>
                   </h1>
                   <p className="text-xs sm:text-sm md:text-base lg:text-lg text-slate-400">
                     Secure access to AI-powered financial intelligence
@@ -223,9 +252,21 @@ export default function AuthPage() {
 
                 <div className="space-y-3 lg:space-y-4">
                   {[
-                    { icon: Shield, title: 'Enterprise Security', desc: 'Bank-grade encryption for your data' },
-                    { icon: Zap, title: 'Instant Access', desc: 'Get started in seconds' },
-                    { icon: TrendingUp, title: 'AI Powered', desc: 'Real-time market insights' },
+                    {
+                      icon: Shield,
+                      title: "Enterprise Security",
+                      desc: "Bank-grade encryption for your data",
+                    },
+                    {
+                      icon: Zap,
+                      title: "Instant Access",
+                      desc: "Get started in seconds",
+                    },
+                    {
+                      icon: TrendingUp,
+                      title: "AI Powered",
+                      desc: "Real-time market insights",
+                    },
                   ].map((item, i) => (
                     <motion.div
                       key={i}
@@ -238,8 +279,12 @@ export default function AuthPage() {
                         </div>
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-white text-xs sm:text-sm lg:text-base">{item.title}</h3>
-                        <p className="text-slate-400 text-xs mt-0.5">{item.desc}</p>
+                        <h3 className="font-semibold text-white text-xs sm:text-sm lg:text-base">
+                          {item.title}
+                        </h3>
+                        <p className="text-slate-400 text-xs mt-0.5">
+                          {item.desc}
+                        </p>
                       </div>
                     </motion.div>
                   ))}
@@ -248,7 +293,10 @@ export default function AuthPage() {
             </motion.div>
 
             {/* Right Side - Auth Forms */}
-            <motion.div variants={itemVariants} className="space-y-4 sm:space-y-5 md:space-y-6 w-full">
+            <motion.div
+              variants={itemVariants}
+              className="space-y-4 sm:space-y-5 md:space-y-6 w-full"
+            >
               {/* Global error banner — shown regardless of active tab */}
               {(localError || error) && (
                 <motion.div
@@ -263,22 +311,22 @@ export default function AuthPage() {
               {/* Tab Buttons */}
               <div className="flex gap-2 sm:gap-2.5 md:gap-3 mb-5 sm:mb-6 md:mb-8">
                 <button
-                  onClick={() => setTab('wallet')}
+                  onClick={() => setTab("wallet")}
                   className={`flex-1 py-2 sm:py-2.5 md:py-3 px-2 sm:px-3 md:px-4 rounded-lg md:rounded-xl font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2 border text-xs sm:text-sm ${
-                    tab === 'wallet'
-                      ? 'bg-linear-to-r from-amber-500/20 to-amber-600/20 border-amber-500/40 text-amber-300'
-                      : 'bg-slate-800/30 border-slate-700/30 text-slate-400 hover:text-slate-300'
+                    tab === "wallet"
+                      ? "bg-linear-to-r from-amber-500/20 to-amber-600/20 border-amber-500/40 text-amber-300"
+                      : "bg-slate-800/30 border-slate-700/30 text-slate-400 hover:text-slate-300"
                   }`}
                 >
                   <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-4 md:h-4" />
                   <span className="hidden sm:inline">Wallet</span>
                 </button>
                 <button
-                  onClick={() => setTab('email')}
+                  onClick={() => setTab("email")}
                   className={`flex-1 py-2 sm:py-2.5 md:py-3 px-2 sm:px-3 md:px-4 rounded-lg md:rounded-xl font-bold transition-all flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2 border text-xs sm:text-sm ${
-                    tab === 'email'
-                      ? 'bg-linear-to-r from-blue-500/20 to-blue-600/20 border-blue-500/40 text-blue-300'
-                      : 'bg-slate-800/30 border-slate-700/30 text-slate-400 hover:text-slate-300'
+                    tab === "email"
+                      ? "bg-linear-to-r from-blue-500/20 to-blue-600/20 border-blue-500/40 text-blue-300"
+                      : "bg-slate-800/30 border-slate-700/30 text-slate-400 hover:text-slate-300"
                   }`}
                 >
                   <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-4 md:h-4" />
@@ -287,7 +335,7 @@ export default function AuthPage() {
               </div>
 
               {/* Wallet Auth */}
-              {tab === 'wallet' && (
+              {tab === "wallet" && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -299,8 +347,12 @@ export default function AuthPage() {
                       <div className="w-11 sm:w-12 md:w-16 h-11 sm:h-12 md:h-16 rounded-lg sm:rounded-xl bg-linear-to-br from-amber-500/30 to-amber-600/20 flex items-center justify-center border border-amber-500/30 mx-auto mb-2 sm:mb-3 md:mb-4">
                         <Wallet className="w-6 sm:w-7 md:w-8 h-6 sm:h-7 md:h-8 text-amber-400" />
                       </div>
-                      <h2 className="text-lg sm:text-xl md:text-2xl font-black text-white mb-1 sm:mb-1.5 md:mb-2">Web3 Wallet</h2>
-                      <p className="text-xs sm:text-xs md:text-sm text-slate-400">Connect your wallet for secure access</p>
+                      <h2 className="text-lg sm:text-xl md:text-2xl font-black text-white mb-1 sm:mb-1.5 md:mb-2">
+                        Web3 Wallet
+                      </h2>
+                      <p className="text-xs sm:text-xs md:text-sm text-slate-400">
+                        Connect your wallet for secure access
+                      </p>
                     </div>
 
                     <div className="space-y-3 sm:space-y-3.5 md:space-y-4">
@@ -314,13 +366,17 @@ export default function AuthPage() {
                         {isLoading ? (
                           <>
                             <Loader className="w-4 sm:w-4 md:w-5 h-4 sm:h-4 md:h-5 animate-spin" />
-                            <span className="hidden sm:inline">Connecting...</span>
+                            <span className="hidden sm:inline">
+                              Connecting...
+                            </span>
                             <span className="sm:hidden">Connect...</span>
                           </>
                         ) : (
                           <>
                             <Wallet className="w-4 sm:w-4 md:w-5 h-4 sm:h-4 md:h-5" />
-                            <span className="hidden sm:inline">Connect MetaMask</span>
+                            <span className="hidden sm:inline">
+                              Connect MetaMask
+                            </span>
                             <span className="sm:hidden">Connect</span>
                           </>
                         )}
@@ -335,7 +391,7 @@ export default function AuthPage() {
               )}
 
               {/* Email Auth */}
-              {tab === 'email' && (
+              {tab === "email" && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -348,10 +404,12 @@ export default function AuthPage() {
                         <Mail className="w-6 sm:w-7 md:w-8 h-6 sm:h-7 md:h-8 text-blue-400" />
                       </div>
                       <h2 className="text-lg sm:text-lg md:text-xl font-black text-white mb-0.5 sm:mb-1 md:mb-2">
-                        {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+                        {mode === "login" ? "Welcome Back" : "Create Account"}
                       </h2>
                       <p className="text-xs text-slate-400">
-                        {mode === 'login' ? 'Sign in to your account' : 'Join the platform'}
+                        {mode === "login"
+                          ? "Sign in to your account"
+                          : "Join the platform"}
                       </p>
                     </div>
 
@@ -370,19 +428,39 @@ export default function AuthPage() {
                         </>
                       ) : (
                         <>
-                          <Chrome className="w-4 h-4" />
-                          {mode === 'signup' ? 'Sign up with Google' : 'Sign in with Google'}
+                          <svg
+                            className="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              fill="none"
+                            />
+                          </svg>
+                          {mode === "signup"
+                            ? "Sign up with Google"
+                            : "Sign in with Google"}
                         </>
                       )}
                     </motion.button>
 
                     <div className="my-3 sm:my-4 flex items-center gap-2">
                       <div className="h-px flex-1 bg-slate-700/40" />
-                      <span className="text-[10px] uppercase tracking-wider text-slate-500">or use email</span>
+                      <span className="text-[10px] uppercase tracking-wider text-slate-500">
+                        or use email
+                      </span>
                       <div className="h-px flex-1 bg-slate-700/40" />
                     </div>
 
-                    <form onSubmit={handleEmailAuth} className="space-y-2.5 sm:space-y-3 md:space-y-4">
+                    <form
+                      onSubmit={handleEmailAuth}
+                      className="space-y-2.5 sm:space-y-3 md:space-y-4"
+                    >
                       {/* Email */}
                       <div>
                         <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1 sm:mb-1.5">
@@ -405,7 +483,7 @@ export default function AuthPage() {
                         </label>
                         <div className="relative">
                           <motion.input
-                            type={showPassword ? 'text' : 'password'}
+                            type={showPassword ? "text" : "password"}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"
@@ -417,19 +495,23 @@ export default function AuthPage() {
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute right-3 sm:right-3.5 md:right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                           >
-                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            {showPassword ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
                           </button>
                         </div>
                       </div>
 
                       {/* Confirm Password */}
-                      {mode === 'signup' && (
+                      {mode === "signup" && (
                         <div>
                           <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1 sm:mb-1.5">
                             Confirm Password
                           </label>
                           <motion.input
-                            type={showPassword ? 'text' : 'password'}
+                            type={showPassword ? "text" : "password"}
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             placeholder="••••••••"
@@ -461,14 +543,20 @@ export default function AuthPage() {
                         {isLoading ? (
                           <>
                             <Loader className="w-4 h-4 animate-spin" />
-                            <span className="hidden sm:inline">Processing...</span>
+                            <span className="hidden sm:inline">
+                              Processing...
+                            </span>
                             <span className="sm:hidden">Loading...</span>
                           </>
                         ) : (
                           <>
                             <Lock className="w-4 h-4" />
-                            <span className="hidden sm:inline">{mode === 'login' ? 'Sign In' : 'Create Account'}</span>
-                            <span className="sm:hidden">{mode === 'login' ? 'Sign In' : 'Create'}</span>
+                            <span className="hidden sm:inline">
+                              {mode === "login" ? "Sign In" : "Create Account"}
+                            </span>
+                            <span className="sm:hidden">
+                              {mode === "login" ? "Sign In" : "Create"}
+                            </span>
                           </>
                         )}
                       </motion.button>
@@ -477,17 +565,19 @@ export default function AuthPage() {
                     {/* Toggle Mode */}
                     <div className="mt-3 sm:mt-3 md:mt-4 pt-3 sm:pt-3 md:pt-4 border-t border-slate-700/30 text-center">
                       <p className="text-xs text-slate-400">
-                        {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+                        {mode === "login"
+                          ? "Don't have an account? "
+                          : "Already have an account? "}
                         <button
                           type="button"
                           onClick={() => {
-                            setMode(mode === 'login' ? 'signup' : 'login');
-                            setLocalError('');
+                            setMode(mode === "login" ? "signup" : "login");
+                            setLocalError("");
                             clearError();
                           }}
                           className="text-blue-400 hover:text-blue-300 font-bold transition-colors"
                         >
-                          {mode === 'login' ? 'Sign up' : 'Sign in'}
+                          {mode === "login" ? "Sign up" : "Sign in"}
                         </button>
                       </p>
                     </div>
@@ -497,7 +587,14 @@ export default function AuthPage() {
 
               {/* Footer */}
               <p className="text-xs text-slate-500 text-center px-1 sm:px-0">
-                By continuing, you agree to our <a href="#" className="text-slate-400 hover:text-slate-300">Terms</a> and <a href="#" className="text-slate-400 hover:text-slate-300">Privacy Policy</a>
+                By continuing, you agree to our{" "}
+                <a href="#" className="text-slate-400 hover:text-slate-300">
+                  Terms
+                </a>{" "}
+                and{" "}
+                <a href="#" className="text-slate-400 hover:text-slate-300">
+                  Privacy Policy
+                </a>
               </p>
             </motion.div>
           </div>
