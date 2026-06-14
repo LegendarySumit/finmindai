@@ -1,5 +1,3 @@
-"use server";
-
 import pino from "pino";
 
 type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
