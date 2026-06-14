@@ -1,34 +1,36 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { createServer } = require('http');
-const { parse } = require('url');
-const next = require('next');
-const { WebSocketServer } = require('ws');
-const { cert, getApp, getApps, initializeApp } = require('firebase-admin/app');
-const { getAuth } = require('firebase-admin/auth');
+const { createServer } = require("http");
+const { parse } = require("url");
+const next = require("next");
+const { WebSocketServer } = require("ws");
+const { cert, getApp, getApps, initializeApp } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
 
-const dev = process.env.NODE_ENV !== 'production';
-const hostname = process.env.HOSTNAME || '0.0.0.0';
+const dev = process.env.NODE_ENV !== "production";
+const hostname = process.env.HOSTNAME || "localhost";
 const port = Number(process.env.PORT || 3000);
 
 function parseServiceAccountFromEnv() {
   const base64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
 
   if (base64) {
-    const decoded = Buffer.from(base64, 'base64').toString('utf-8');
+    const decoded = Buffer.from(base64, "base64").toString("utf-8");
     const parsed = JSON.parse(decoded);
     return {
       ...parsed,
-      private_key: parsed.private_key.replace(/\\n/g, '\n'),
+      private_key: parsed.private_key.replace(/\\n/g, "\n"),
     };
   }
 
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
+  const privateKey =
+    process.env.FIREBASE_PRIVATE_KEY &&
+    process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n");
 
   if (!projectId || !clientEmail || !privateKey) {
     throw new Error(
-      'Missing Firebase Admin credentials. Set FIREBASE_SERVICE_ACCOUNT_BASE64 or FIREBASE_PROJECT_ID/FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY.'
+      "Missing Firebase Admin credentials. Set FIREBASE_SERVICE_ACCOUNT_BASE64 or FIREBASE_PROJECT_ID/FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY.",
     );
   }
 
@@ -55,13 +57,16 @@ function getAdminAuth() {
 }
 
 function extractBearerToken(req) {
-  const header = req.headers.authorization || '';
-  if (header.startsWith('Bearer ')) {
+  const header = req.headers.authorization || "";
+  if (header.startsWith("Bearer ")) {
     return header.slice(7).trim();
   }
 
-  const reqUrl = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
-  const tokenFromQuery = reqUrl.searchParams.get('token');
+  const reqUrl = new URL(
+    req.url || "",
+    `http://${req.headers.host || "localhost"}`,
+  );
+  const tokenFromQuery = reqUrl.searchParams.get("token");
   return tokenFromQuery || null;
 }
 
@@ -94,22 +99,22 @@ app.prepare().then(() => {
       const parsedUrl = parse(req.url, true);
       await handle(req, res, parsedUrl);
     } catch (err) {
-      console.error('Error occurred handling', req.url, err);
+      console.error("Error occurred handling", req.url, err);
       res.statusCode = 500;
-      res.end('Internal server error');
+      res.end("Internal server error");
     }
   });
 
   // Create WebSocket server and explicitly route upgrade requests.
   const wss = new WebSocketServer({ noServer: true });
 
-  server.on('upgrade', async (req, socket, head) => {
-    const { pathname } = parse(req.url || '', true);
+  server.on("upgrade", async (req, socket, head) => {
+    const { pathname } = parse(req.url || "", true);
 
-    if (pathname === '/ws') {
+    if (pathname === "/ws") {
       const identity = await verifyWsToken(req);
       if (!identity) {
-        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
         socket.destroy();
         return;
       }
@@ -117,7 +122,7 @@ app.prepare().then(() => {
       wss.handleUpgrade(req, socket, head, (ws) => {
         ws.uid = identity.uid;
         ws.email = identity.email;
-        wss.emit('connection', ws, req);
+        wss.emit("connection", ws, req);
       });
       return;
     }
@@ -126,7 +131,7 @@ app.prepare().then(() => {
   });
 
   // Mock stock data generator
-  const stocks = ['TSLA', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META'];
+  const stocks = ["TSLA", "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META"];
   const basePrice = {
     TSLA: 245.67,
     AAPL: 178.32,
@@ -144,7 +149,7 @@ app.prepare().then(() => {
     const percentChange = ((change / basePrice[stock]) * 100).toFixed(2);
 
     return {
-      type: 'stock_update',
+      type: "stock_update",
       data: {
         symbol: stock,
         price: price.toFixed(2),
@@ -154,32 +159,73 @@ app.prepare().then(() => {
       },
     };
   }
-  
-  function generateNewsUpdate() {
-    const subjects = ['Apple', 'Tesla', 'Nvidia', 'Bitcoin', 'The Fed', 'Oil Prices', 'Goldman Sachs', 'Google'];
-    const actions = ['surges after', 'plunges due to', 'announces', 'reveals plans for', 'warns about', 'secures deal with'];
-    const objects = ['record earnings', 'supply chain crisis', 'AI breakthrough', 'regulatory crackdown', 'interest rate hike', 'merger talks'];
-    const contexts = ['amidst market volatility', 'cheering investors', 'sparking sell-off', 'defying expectations', 'in early trading'];
 
-    const sources = ['Bloomberg', 'Reuters', 'CNBC', 'Financial Times', 'WSJ'];
-    const categories = ['Stocks', 'Crypto', 'Macro', 'Commodities', 'Tech'];
+  function generateNewsUpdate() {
+    const subjects = [
+      "Apple",
+      "Tesla",
+      "Nvidia",
+      "Bitcoin",
+      "The Fed",
+      "Oil Prices",
+      "Goldman Sachs",
+      "Google",
+    ];
+    const actions = [
+      "surges after",
+      "plunges due to",
+      "announces",
+      "reveals plans for",
+      "warns about",
+      "secures deal with",
+    ];
+    const objects = [
+      "record earnings",
+      "supply chain crisis",
+      "AI breakthrough",
+      "regulatory crackdown",
+      "interest rate hike",
+      "merger talks",
+    ];
+    const contexts = [
+      "amidst market volatility",
+      "cheering investors",
+      "sparking sell-off",
+      "defying expectations",
+      "in early trading",
+    ];
+
+    const sources = ["Bloomberg", "Reuters", "CNBC", "Financial Times", "WSJ"];
+    const categories = ["Stocks", "Crypto", "Macro", "Commodities", "Tech"];
 
     const subject = subjects[Math.floor(Math.random() * subjects.length)];
     const action = actions[Math.floor(Math.random() * actions.length)];
     const object = objects[Math.floor(Math.random() * objects.length)];
     const context = contexts[Math.floor(Math.random() * contexts.length)];
-    
+
     // Simple sentiment logic based on keywords
-    let sentiment = 'neutral';
-    if (action.includes('surges') || action.includes('secures') || object.includes('record') || object.includes('breakthrough')) sentiment = 'positive';
-    if (action.includes('plunges') || action.includes('warns') || object.includes('crisis') || object.includes('crackdown')) sentiment = 'negative';
+    let sentiment = "neutral";
+    if (
+      action.includes("surges") ||
+      action.includes("secures") ||
+      object.includes("record") ||
+      object.includes("breakthrough")
+    )
+      sentiment = "positive";
+    if (
+      action.includes("plunges") ||
+      action.includes("warns") ||
+      object.includes("crisis") ||
+      object.includes("crackdown")
+    )
+      sentiment = "negative";
 
     const title = `${subject} ${action} ${object} ${context}`;
     const source = sources[Math.floor(Math.random() * sources.length)];
     const category = categories[Math.floor(Math.random() * categories.length)];
 
     return {
-      type: 'news_update',
+      type: "news_update",
       data: {
         id: Date.now(),
         title,
@@ -188,26 +234,28 @@ app.prepare().then(() => {
         category,
         timestamp: new Date().toISOString(),
         impactScore: (Math.random() * 10).toFixed(1),
-        aiInsight: `AI analysis suggests ${sentiment === 'positive' ? 'bullish' : sentiment === 'negative' ? 'bearish' : 'neutral'} momentum for ${subject}. Trading volume is expected to ${sentiment === 'positive' ? 'increase' : 'fluctuate'}.`,
+        aiInsight: `AI analysis suggests ${sentiment === "positive" ? "bullish" : sentiment === "negative" ? "bearish" : "neutral"} momentum for ${subject}. Trading volume is expected to ${sentiment === "positive" ? "increase" : "fluctuate"}.`,
       },
     };
   }
 
   // Connection handler
-  wss.on('connection', (ws) => {
+  wss.on("connection", (ws) => {
     if (!ws.uid) {
-      ws.close(4001, 'Unauthorized');
+      ws.close(4001, "Unauthorized");
       return;
     }
 
-    console.log('🔗 New authenticated WebSocket client connected', ws.uid);
+    console.log("🔗 New authenticated WebSocket client connected", ws.uid);
 
     // Send welcome message
-    ws.send(JSON.stringify({
-      type: 'connection',
-      message: 'Connected to FinMindAI WebSocket Server',
-      timestamp: new Date().toISOString(),
-    }));
+    ws.send(
+      JSON.stringify({
+        type: "connection",
+        message: "Connected to FinMindAI WebSocket Server",
+        timestamp: new Date().toISOString(),
+      }),
+    );
 
     // Send stock updates every 3 seconds
     const stockInterval = setInterval(() => {
@@ -224,43 +272,50 @@ app.prepare().then(() => {
     }, 10000);
 
     // Handle incoming messages
-    ws.on('message', (message) => {
+    ws.on("message", (message) => {
       try {
         const data = JSON.parse(message);
-        console.log('📨 Received:', data);
+        console.log("📨 Received:", data);
 
-        if (data.type === 'ping') {
-          ws.send(JSON.stringify({ type: 'pong', timestamp: new Date().toISOString() }));
+        if (data.type === "ping") {
+          ws.send(
+            JSON.stringify({
+              type: "pong",
+              timestamp: new Date().toISOString(),
+            }),
+          );
         }
 
         // Broadcast to all clients
         wss.clients.forEach((client) => {
           if (client.readyState === client.OPEN) {
-            client.send(JSON.stringify({
-              type: 'broadcast',
-              data: data,
-              timestamp: new Date().toISOString(),
-            }));
+            client.send(
+              JSON.stringify({
+                type: "broadcast",
+                data: data,
+                timestamp: new Date().toISOString(),
+              }),
+            );
           }
         });
       } catch (error) {
-        console.error('Error parsing message:', error);
+        console.error("Error parsing message:", error);
       }
     });
 
     // Handle disconnection
-    ws.on('close', () => {
-      console.log('❌ Client disconnected');
+    ws.on("close", () => {
+      console.log("❌ Client disconnected");
       clearInterval(stockInterval);
       clearInterval(newsInterval);
     });
 
-    ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
+    ws.on("error", (error) => {
+      console.error("WebSocket error:", error);
     });
   });
 
-  server.once('error', (err) => {
+  server.once("error", (err) => {
     console.error(err);
     process.exit(1);
   });
