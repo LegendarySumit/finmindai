@@ -63,11 +63,14 @@
     "uuid": "^9.0.1",
     "postcss": "^8.4.40",
     "fast-xml-parser": "^4.3.6",
+    "fast-xml-builder": "^1.2.7",
     "ws": "^8.17.1",
     "axios": "^1.7.7",
     "next": "^16.2.2",
     "@grpc/grpc-js": "^1.10.9",
     "follow-redirects": "^1.15.9",
-    "minimist": "^1.2.8"
+    "minimist": "^1.2.8",
+    "whatwg-encoding": "^3.1.1",
+    "node-domexception": "^1.0.0"
   }
 }
