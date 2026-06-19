@@ -145,7 +145,7 @@ const Header = () => {
               </span>
             </motion.a>
 
-            {/* Dashboard Link */}
+            {/* Dashboard Link - hash anchor navigation */}
             <motion.a
               href="/#dashboard"
               className={`flex items-center gap-1.5 lg:gap-2 transition-all ${
@@ -347,21 +347,27 @@ const Header = () => {
             exit={{ opacity: 0, height: 0 }}
           >
             <div className="px-2 sm:px-3 py-3 sm:py-4 space-y-2 sm:space-y-3">
-              {/* Home Link */}
-              <Link
+              {/* Home Link - page navigation */}
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a
                 href="/"
                 className={`flex items-center gap-2 sm:gap-3 py-2 transition-colors ${
                   activeSection === "home" && scrolledSection === "home"
                     ? "text-finance-gold font-semibold"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMobileMenuOpen(false);
+                  window.location.href = "/";
+                }}
               >
                 <Rocket className="w-4 sm:w-5 h-4 sm:h-5" />
                 <span className="font-medium text-xs sm:text-sm">Home</span>
-              </Link>
+              </a>
 
-              {/* Dashboard Link */}
+              {/* Dashboard Link - hash anchor navigation, not page nav */}
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a
                 href="/#dashboard"
                 className={`flex items-center gap-2 sm:gap-3 py-2 transition-colors ${
@@ -415,7 +421,7 @@ const Header = () => {
                     return (
                       <a
                         key={link.name}
-                        href={`/${link.href}`}
+                        href={`/#${sectionId}`}
                         className={`flex items-center gap-2 sm:gap-3 py-2 transition-colors ${
                           isActive
                             ? "text-finance-gold font-semibold"
